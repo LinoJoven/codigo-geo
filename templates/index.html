@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geodesia Geométrica Avanzada</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .grid-apartados {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .apartado-btn {
+            background: white;
+            border: none;
+            border-radius: 15px;
+            padding: 40px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+        }
+
+        .apartado-btn:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .apartado-btn .numero {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .apartado-btn:hover .numero {
+            color: white;
+        }
+
+        .apartado-btn .titulo {
+            font-size: 1.1em;
+            color: #333;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        .apartado-btn:hover .titulo {
+            color: white;
+        }
+
+        .apartado-btn.activo {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .apartado-btn.activo .numero,
+        .apartado-btn.activo .titulo {
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .grid-apartados {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid-apartados {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Geodesia Geométrica Avanzada</h1>
+        <div class="grid-apartados">
+            <a href="/apartado1" class="apartado-btn activo">
+                <div class="numero">1</div>
+                <div class="titulo">Transformación de Latitudes</div>
+            </a>
+            <a href="/apartado2" class="apartado-btn">
+                <div class="numero">2</div>
+                <div class="titulo">Apartado 2</div>
+            </a>
+            <a href="/apartado3" class="apartado-btn">
+                <div class="numero">3</div>
+                <div class="titulo">Apartado 3</div>
+            </a>
+            <a href="/apartado4" class="apartado-btn">
+                <div class="numero">4</div>
+                <div class="titulo">Apartado 4</div>
+            </a>
+            <a href="/apartado5" class="apartado-btn">
+                <div class="numero">5</div>
+                <div class="titulo">Apartado 5</div>
+            </a>
+            <a href="/apartado6" class="apartado-btn">
+                <div class="numero">6</div>
+                <div class="titulo">Apartado 6</div>
+            </a>
+            <a href="/apartado7" class="apartado-btn">
+                <div class="numero">7</div>
+                <div class="titulo">Apartado 7</div>
+            </a>
+            <a href="/apartado8" class="apartado-btn">
+                <div class="numero">8</div>
+                <div class="titulo">Apartado 8</div>
+            </a>
+            <a href="/apartado9" class="apartado-btn">
+                <div class="numero">9</div>
+                <div class="titulo">Apartado 9</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

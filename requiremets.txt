@@ -1,0 +1,77 @@
+# requirements.txt
+Flask==3.0.0
+numpy==1.24.3
+
+# ================================
+# INSTRUCCIONES DE INSTALACIÓN
+# ================================
+
+ESTRUCTURA DEL PROYECTO:
+------------------------
+geodesia-app/
+│
+├── app.py
+├── requirements.txt
+│
+└── templates/
+    ├── index.html
+    ├── apartado1.html
+    ├── apartado2.html
+    ├── apartado3.html
+    ├── apartado4.html
+    ├── apartado5.html
+    ├── apartado6.html
+    ├── apartado7.html
+    ├── apartado8.html
+    └── apartado9.html
+
+
+PASOS PARA EJECUTAR:
+--------------------
+
+1. Abre Visual Studio Code
+
+2. Abre la terminal (Terminal > New Terminal)
+
+3. Crea un entorno virtual (recomendado):
+   
+   Windows:
+   python -m venv venv
+   venv\Scripts\activate
+   
+   Mac/Linux:
+   python3 -m venv venv
+   source venv/bin/activate
+
+4. Instala las dependencias:
+   pip install -r requirements.txt
+
+5. Ejecuta la aplicación:
+   python app.py
+
+6. Abre tu navegador en:
+   http://localhost:5000
+
+7. Para detener el servidor:
+   Presiona Ctrl+C en la terminal
+
+
+NOTAS IMPORTANTES:
+------------------
+- Los apartados 2-9 son plantillas vacías
+- Puedes copiar apartado2.html y modificarlo para los demás
+- Cada apartado tiene su propia ruta y estilos independientes
+- El apartado 1 está completamente funcional con:
+  * Transformación de latitudes (φ, θ, ω)
+  * Cálculos bidireccionales
+  * Gráfico 3D interactivo con Plotly
+  * Visualización del elipsoide WGS84
+
+
+PARA DESARROLLO FUTURO:
+------------------------
+1. Copia el contenido de apartado2.html
+2. Pégalo en apartado3.html, apartado4.html, etc.
+3. Cambia los títulos y colores según necesites
+4. Agrega funcionalidad específica en app.py
+5. Modifica los estilos CSS en cada archivo HTML
