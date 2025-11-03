@@ -1,91 +1,398 @@
-<!-- apartado2.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apartado 2</title>
+    <title>Apartado 3 - Coordenadas con Altura</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
         .header {
             text-align: center;
             color: white;
             margin-bottom: 30px;
         }
-
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-
-        .btn-volver {
-            display: inline-block;
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
             background: white;
-            color: #764ba2;
-            padding: 10px 30px;
-            border-radius: 25px;
+            color: #134e5e;
             text-decoration: none;
+            border-radius: 5px;
             font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            z-index: 100;
         }
-
-        .btn-volver:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
+        .btn-back:hover { transform: scale(1.05); }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .panel {
             background: white;
             border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            text-align: center;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-
-        .container h2 {
-            color: #667eea;
-            font-size: 2em;
-            margin-bottom: 20px;
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
         }
-
-        .container p {
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .coords-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.02); }
+        .resultados {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .resultado-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-left: 4px solid #71b280;
+            border-radius: 5px;
+        }
+        .resultado-item h3 {
+            color: #134e5e;
+            margin-bottom: 10px;
+        }
+        #canvas-container {
+            width: 100%;
+            height: 600px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #0a0a0a;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        small {
+            display: block;
+            margin-top: 5px;
             color: #666;
-            font-size: 1.2em;
+        }
+        @media (max-width: 1024px) {
+            .container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+    <a href="/" class="btn-back">← Volver</a>
+    
     <div class="header">
-        <h1>📊 Apartado 2</h1>
-        <a href="/" class="btn-volver">← Volver al Inicio</a>
+        <h1>⛰️ Coordenadas con Altura Elipsoidal</h1>
+        <p>Transformación (φ, λ, h) → (X, Y, Z)</p>
     </div>
 
     <div class="container">
-        <h2>En Construcción</h2>
-        <p>Este apartado está listo para ser desarrollado.</p>
+        <div class="panel">
+            <h2>Datos de Entrada</h2>
+            
+            <div class="form-group">
+                <label>Latitud Geodésica (φ):</label>
+                <div class="coords-input">
+                    <div>
+                        <input type="number" id="phi_grados" placeholder="Grados" step="any">
+                        <small>Grados</small>
+                    </div>
+                    <div>
+                        <input type="number" id="phi_minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <small>Minutos</small>
+                    </div>
+                    <div>
+                        <input type="number" id="phi_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <small>Segundos</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Longitud (λ):</label>
+                <div class="coords-input">
+                    <div>
+                        <input type="number" id="lambda_grados" placeholder="Grados" step="any">
+                        <small>Grados</small>
+                    </div>
+                    <div>
+                        <input type="number" id="lambda_minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <small>Minutos</small>
+                    </div>
+                    <div>
+                        <input type="number" id="lambda_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <small>Segundos</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Altura Elipsoidal (h) en metros:</label>
+                <input type="number" id="h" placeholder="Ej: 2640 (Bogotá)" step="any">
+                <small>Puede ser positiva (sobre el elipsoide) o negativa (bajo el elipsoide)</small>
+            </div>
+
+            <button onclick="calcular()">Calcular Coordenadas Cartesianas</button>
+
+            <div id="resultados"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Visualización 3D del Punto</h2>
+            <div id="canvas-container"></div>
+            <div style="margin-top: 15px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+                <p style="margin-bottom: 10px;"><strong>📍 Punto Rojo:</strong> Posición del punto con altura h</p>
+                <p style="margin-bottom: 10px;"><strong>🔵 Punto Azul:</strong> Proyección sobre el elipsoide (h=0)</p>
+                <p><strong>Línea Verde:</strong> Altura elipsoidal</p>
+            </div>
+        </div>
     </div>
+
+    <script>
+        let scene, camera, renderer, ellipsoid, point, pointBase, heightLine;
+        
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+            
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 20000000);
+            camera.position.set(15000000, 10000000, 15000000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            const container = document.getElementById('canvas-container');
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10000000, 10000000, 10000000);
+            scene.add(directionalLight);
+            
+            const a = 6378137;
+            const b = 6356752.314245;
+            const geometry = new THREE.SphereGeometry(a, 64, 64);
+            geometry.scale(1, 1, b/a);
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x71b280,
+                transparent: true,
+                opacity: 0.7
+            });
+            
+            ellipsoid = new THREE.Mesh(geometry, material);
+            scene.add(ellipsoid);
+            
+            const wireframeGeometry = new THREE.SphereGeometry(a * 1.01, 32, 32);
+            wireframeGeometry.scale(1, 1, b/a);
+            const wireframeMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.2
+            });
+            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+            scene.add(wireframe);
+            
+            const axesHelper = new THREE.AxesHelper(8000000);
+            scene.add(axesHelper);
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            ellipsoid.rotation.y += 0.001;
+            renderer.render(scene, camera);
+        }
+        
+        function addPoint(x, y, z, xBase, yBase, zBase) {
+            if (point) scene.remove(point);
+            if (pointBase) scene.remove(pointBase);
+            if (heightLine) scene.remove(heightLine);
+            
+            // Punto con altura
+            const geometry = new THREE.SphereGeometry(300000, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0xff4444 });
+            point = new THREE.Mesh(geometry, material);
+            point.position.set(x, z, y);
+            scene.add(point);
+            
+            // Punto base (h=0)
+            const geometryBase = new THREE.SphereGeometry(250000, 32, 32);
+            const materialBase = new THREE.MeshBasicMaterial({ color: 0x4444ff });
+            pointBase = new THREE.Mesh(geometryBase, materialBase);
+            pointBase.position.set(xBase, zBase, yBase);
+            scene.add(pointBase);
+            
+            // Línea de altura
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(xBase, zBase, yBase),
+                new THREE.Vector3(x, z, y)
+            ]);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0x44ff44, linewidth: 2 });
+            heightLine = new THREE.Line(lineGeometry, lineMaterial);
+            scene.add(heightLine);
+            
+            // Línea desde el origen al punto base
+            const lineOriginGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(xBase, zBase, yBase)
+            ]);
+            const lineOriginMaterial = new THREE.LineBasicMaterial({ color: 0x4444ff, opacity: 0.5, transparent: true });
+            const lineOrigin = new THREE.Line(lineOriginGeometry, lineOriginMaterial);
+            scene.add(lineOrigin);
+        }
+        
+        async function calcular() {
+            const phi_grados = parseFloat(document.getElementById('phi_grados').value);
+            const phi_minutos = parseFloat(document.getElementById('phi_minutos').value) || 0;
+            const phi_segundos = parseFloat(document.getElementById('phi_segundos').value) || 0;
+            const lambda_grados = parseFloat(document.getElementById('lambda_grados').value);
+            const lambda_minutos = parseFloat(document.getElementById('lambda_minutos').value) || 0;
+            const lambda_segundos = parseFloat(document.getElementById('lambda_segundos').value) || 0;
+            const h = parseFloat(document.getElementById('h').value);
+            
+            if (isNaN(phi_grados) || isNaN(lambda_grados) || isNaN(h)) {
+                alert('Por favor complete todos los campos');
+                return;
+            }
+            
+            if (phi_grados < -90 || phi_grados > 90) {
+                alert('La latitud debe estar entre -90° y 90°');
+                return;
+            }
+            
+            if (lambda_grados < -180 || lambda_grados > 180) {
+                alert('La longitud debe estar entre -180° y 180°');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/apartado3', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        phi_grados, phi_minutos, phi_segundos,
+                        lambda_grados, lambda_minutos, lambda_segundos,
+                        h
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Calcular punto base (h=0) para comparación
+                    const responseBase = await fetch('/api/apartado3', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            phi_grados, phi_minutos, phi_segundos,
+                            lambda_grados, lambda_minutos, lambda_segundos,
+                            h: 0
+                        })
+                    });
+                    
+                    const dataBase = await responseBase.json();
+                    
+                    const distancia = Math.sqrt(
+                        Math.pow(data.X - dataBase.X, 2) +
+                        Math.pow(data.Y - dataBase.Y, 2) +
+                        Math.pow(data.Z - dataBase.Z, 2)
+                    );
+                    
+                    document.getElementById('resultados').innerHTML = `
+                        <div class="resultados">
+                            <h3>Coordenadas Cartesianas Geocéntricas</h3>
+                            
+                            <div class="resultado-item">
+                                <h3>Con altura h = ${h.toFixed(3)} m</h3>
+                                <p><strong>X:</strong> ${data.X.toFixed(3)} m</p>
+                                <p><strong>Y:</strong> ${data.Y.toFixed(3)} m</p>
+                                <p><strong>Z:</strong> ${data.Z.toFixed(3)} m</p>
+                            </div>
+                            
+                            <div class="resultado-item">
+                                <h3>Sobre el elipsoide (h = 0)</h3>
+                                <p><strong>X:</strong> ${dataBase.X.toFixed(3)} m</p>
+                                <p><strong>Y:</strong> ${dataBase.Y.toFixed(3)} m</p>
+                                <p><strong>Z:</strong> ${dataBase.Z.toFixed(3)} m</p>
+                            </div>
+                            
+                            <div class="resultado-item">
+                                <h3>📏 Diferencia (altura elipsoidal)</h3>
+                                <p><strong>Distancia 3D:</strong> ${distancia.toFixed(3)} m</p>
+                                <p><strong>Altura h:</strong> ${h.toFixed(3)} m</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    addPoint(data.X, data.Y, data.Z, dataBase.X, dataBase.Y, dataBase.Z);
+                } else {
+                    document.getElementById('resultados').innerHTML = `
+                        <div class="error">Error: ${data.error}</div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('resultados').innerHTML = `
+                    <div class="error">Error de conexión: ${error.message}</div>
+                `;
+            }
+        }
+        
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+        
+        initThree();
+    </script>
 </body>
 </html>
-
-<!-- apartado3.html - apartado9.html -->
-<!-- Copiar la misma estructura cambiando solo:
-     - El título "Apartado X"
-     - El color del gradiente si deseas
-     - Mantener la estructura para facilitar desarrollo futuro
--->

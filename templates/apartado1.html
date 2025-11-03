@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transformación de Latitudes</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <title>Apartado 1 - Transformación de Latitudes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -28,70 +28,38 @@
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .btn-volver {
-            display: inline-block;
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
             background: white;
-            color: #f5576c;
-            padding: 10px 30px;
-            border-radius: 25px;
+            color: #1e3c72;
             text-decoration: none;
+            border-radius: 5px;
             font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
         }
 
-        .btn-volver:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        .btn-back:hover {
+            transform: scale(1.05);
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 400px 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
         }
 
-        .panel-calculo {
+        .panel {
             background: white;
             border-radius: 15px;
             padding: 30px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-
-        .panel-grafico {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            min-height: 700px;
-        }
-
-        h2 {
-            color: #f5576c;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
-        .info-latitudes {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-
-        .info-latitudes div {
-            margin-bottom: 8px;
-        }
-
-        .info-latitudes strong {
-            color: #f5576c;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .form-group {
@@ -100,79 +68,80 @@
 
         label {
             display: block;
-            margin-bottom: 8px;
+            font-weight: bold;
+            margin-bottom: 5px;
             color: #333;
-            font-weight: 600;
         }
 
         select, input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
             font-size: 1em;
-            transition: border 0.3s ease;
         }
 
-        select:focus, input:focus {
-            outline: none;
-            border-color: #f5576c;
+        .coords-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
-        .btn-calcular {
+        .coords-input input {
             width: 100%;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 15px;
-            border-radius: 8px;
+            border-radius: 5px;
             font-size: 1.1em;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(245, 87, 108, 0.3);
+            transition: transform 0.2s;
         }
 
-        .btn-calcular:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        button:hover {
+            transform: scale(1.02);
         }
 
         .resultados {
-            margin-top: 25px;
+            margin-top: 30px;
             padding: 20px;
             background: #f8f9fa;
             border-radius: 10px;
-            display: none;
-        }
-
-        .resultados.show {
-            display: block;
         }
 
         .resultado-item {
             margin-bottom: 15px;
-            padding: 12px;
+            padding: 15px;
             background: white;
-            border-radius: 8px;
-            border-left: 4px solid #f5576c;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
         }
 
-        .resultado-item label {
-            margin-bottom: 5px;
-            font-size: 0.9em;
-            color: #666;
+        .resultado-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
         }
 
-        .resultado-item .valor {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #f5576c;
-        }
-
-        #grafico3d {
+        #canvas-container {
             width: 100%;
-            height: 650px;
+            height: 600px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
         }
 
         @media (max-width: 1024px) {
@@ -183,150 +152,238 @@
     </style>
 </head>
 <body>
+    <a href="/" class="btn-back">← Volver</a>
+    
     <div class="header">
         <h1>📐 Transformación de Latitudes</h1>
-        <a href="/" class="btn-volver">← Volver al Inicio</a>
+        <p>Conversión entre φ (Geodésica), θ (Paramétrica) y ω (Geocéntrica)</p>
     </div>
 
     <div class="container">
-        <div class="panel-calculo">
-            <h2>Calculadora de Latitudes</h2>
+        <div class="panel">
+            <h2>Datos de Entrada</h2>
             
-            <div class="info-latitudes">
-                <div><strong>φ (Geodésica):</strong> Normal al elipsoide</div>
-                <div><strong>θ (Paramétrica):</strong> Esfera auxiliar (latitud reducida)</div>
-                <div><strong>ω (Geocéntrica):</strong> Ángulo desde el centro de la Tierra</div>
+            <div class="form-group">
+                <label>Tipo de Latitud de Entrada:</label>
+                <select id="tipo_entrada">
+                    <option value="">Seleccione...</option>
+                    <option value="phi">φ (Latitud Geodésica)</option>
+                    <option value="theta">θ (Latitud Paramétrica)</option>
+                    <option value="omega">ω (Latitud Geocéntrica)</option>
+                </select>
             </div>
 
-            <form id="formLatitudes">
-                <div class="form-group">
-                    <label for="tipoEntrada">Tipo de Latitud de Entrada:</label>
-                    <select id="tipoEntrada" required>
-                        <option value="geodesica">φ - Latitud Geodésica</option>
-                        <option value="parametrica">θ - Latitud Paramétrica</option>
-                        <option value="geocentrica">ω - Latitud Geocéntrica</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="valorLatitud">Valor de Latitud (grados):</label>
-                    <input type="number" id="valorLatitud" step="0.000001" min="-90" max="90" required placeholder="Ej: 45.5">
-                </div>
-
-                <div class="form-group">
-                    <label for="longitud">Longitud (grados):</label>
-                    <input type="number" id="longitud" step="0.000001" min="-180" max="180" value="0" placeholder="Ej: -74.0">
-                </div>
-
-                <button type="submit" class="btn-calcular">Calcular Transformaciones</button>
-            </form>
-
-            <div class="resultados" id="resultados">
-                <h3 style="color: #f5576c; margin-bottom: 15px;">Resultados:</h3>
-                <div class="resultado-item">
-                    <label>φ - Latitud Geodésica:</label>
-                    <div class="valor" id="resultPhi">-</div>
-                </div>
-                <div class="resultado-item">
-                    <label>θ - Latitud Paramétrica:</label>
-                    <div class="valor" id="resultTheta">-</div>
-                </div>
-                <div class="resultado-item">
-                    <label>ω - Latitud Geocéntrica:</label>
-                    <div class="valor" id="resultOmega">-</div>
+            <div class="form-group">
+                <label>Valor en Grados, Minutos, Segundos:</label>
+                <div class="coords-input">
+                    <div>
+                        <input type="number" id="grados" placeholder="Grados" step="any">
+                        <small>Grados</small>
+                    </div>
+                    <div>
+                        <input type="number" id="minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <small>Minutos</small>
+                    </div>
+                    <div>
+                        <input type="number" id="segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <small>Segundos</small>
+                    </div>
                 </div>
             </div>
+
+            <button onclick="calcular()">Calcular Transformación</button>
+
+            <div id="resultados"></div>
         </div>
 
-        <div class="panel-grafico">
-            <h2>Visualización 3D - Elipsoide WGS84</h2>
-            <div id="grafico3d"></div>
+        <div class="panel">
+            <h2>Visualización 3D del Elipsoide</h2>
+            <div id="canvas-container"></div>
         </div>
     </div>
 
     <script>
-        // Inicializar gráfico 3D vacío
-        const layout = {
-            scene: {
-                xaxis: {title: 'X (millones m)'},
-                yaxis: {title: 'Y (millones m)'},
-                zaxis: {title: 'Z (millones m)'},
-                aspectmode: 'data'
-            },
-            margin: {l: 0, r: 0, t: 0, b: 0}
-        };
-
-        Plotly.newPlot('grafico3d', [], layout);
-
-        document.getElementById('formLatitudes').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const tipoEntrada = document.getElementById('tipoEntrada').value;
-            const valorLatitud = parseFloat(document.getElementById('valorLatitud').value);
-            const longitud = parseFloat(document.getElementById('longitud').value);
-
+        let scene, camera, renderer, ellipsoid, point;
+        
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+            
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 20000000);
+            camera.position.set(15000000, 10000000, 15000000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            const container = document.getElementById('canvas-container');
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // Luces
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10000000, 10000000, 10000000);
+            scene.add(directionalLight);
+            
+            // Elipsoide WGS84
+            const a = 6378137;
+            const b = 6356752.314245;
+            const geometry = new THREE.SphereGeometry(a, 64, 64);
+            geometry.scale(1, 1, b/a);
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x4287f5,
+                transparent: true,
+                opacity: 0.7,
+                wireframe: false
+            });
+            
+            ellipsoid = new THREE.Mesh(geometry, material);
+            scene.add(ellipsoid);
+            
+            // Wireframe del elipsoide
+            const wireframeGeometry = new THREE.SphereGeometry(a * 1.01, 32, 32);
+            wireframeGeometry.scale(1, 1, b/a);
+            const wireframeMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.2
+            });
+            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+            scene.add(wireframe);
+            
+            // Ejes
+            const axesHelper = new THREE.AxesHelper(8000000);
+            scene.add(axesHelper);
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            ellipsoid.rotation.y += 0.001;
+            renderer.render(scene, camera);
+        }
+        
+        function addPoint(x, y, z, color = 0xff0000) {
+            if (point) scene.remove(point);
+            
+            const geometry = new THREE.SphereGeometry(300000, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: color });
+            point = new THREE.Mesh(geometry, material);
+            point.position.set(x, z, y);
+            scene.add(point);
+            
+            // Línea desde el origen
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(x, z, y)
+            ]);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: color });
+            const line = new THREE.Line(lineGeometry, lineMaterial);
+            scene.add(line);
+        }
+        
+        async function calcular() {
+            const tipo_entrada = document.getElementById('tipo_entrada').value;
+            const grados = parseFloat(document.getElementById('grados').value);
+            const minutos = parseFloat(document.getElementById('minutos').value) || 0;
+            const segundos = parseFloat(document.getElementById('segundos').value) || 0;
+            
+            if (!tipo_entrada) {
+                alert('Por favor seleccione el tipo de latitud de entrada');
+                return;
+            }
+            
+            if (isNaN(grados)) {
+                alert('Por favor ingrese al menos los grados');
+                return;
+            }
+            
+            if (grados < -90 || grados > 90) {
+                alert('Los grados deben estar entre -90 y 90');
+                return;
+            }
+            
             try {
-                const response = await fetch('/calcular_latitudes', {
+                const response = await fetch('/api/apartado1', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        tipo: tipoEntrada,
-                        valor: valorLatitud,
-                        longitud: longitud
+                        tipo_entrada,
+                        grados,
+                        minutos,
+                        segundos
                     })
                 });
-
+                
                 const data = await response.json();
-
-                // Mostrar resultados
-                document.getElementById('resultPhi').textContent = data.phi.toFixed(6) + '°';
-                document.getElementById('resultTheta').textContent = data.theta.toFixed(6) + '°';
-                document.getElementById('resultOmega').textContent = data.omega.toFixed(6) + '°';
-                document.getElementById('resultados').classList.add('show');
-
-                // Actualizar gráfico 3D
-                const elipsoideX = data.elipsoide.x.map(row => row.map(v => v / 1e6));
-                const elipsoideY = data.elipsoide.y.map(row => row.map(v => v / 1e6));
-                const elipsoideZ = data.elipsoide.z.map(row => row.map(v => v / 1e6));
-
-                const traces = [
-                    {
-                        type: 'surface',
-                        x: elipsoideX,
-                        y: elipsoideY,
-                        z: elipsoideZ,
-                        colorscale: 'Viridis',
-                        opacity: 0.7,
-                        name: 'Elipsoide WGS84',
-                        showscale: false
-                    },
-                    {
-                        type: 'scatter3d',
-                        x: [data.punto.x],
-                        y: [data.punto.y],
-                        z: [data.punto.z],
-                        mode: 'markers',
-                        marker: {
-                            size: 15,
-                            color: 'red',
-                            symbol: 'circle',
-                            line: {
-                                color: 'darkred',
-                                width: 2
-                            }
-                        },
-                        name: 'Punto calculado'
-                    }
-                ];
-
-                Plotly.newPlot('grafico3d', traces, layout);
-
+                
+                if (data.success) {
+                    mostrarResultados(data.resultados);
+                    
+                    // Calcular coordenadas cartesianas para visualización
+                    const phi_rad = data.resultados.phi.decimal * Math.PI / 180;
+                    const a = 6378137;
+                    const e2 = 0.00669438002290;
+                    const N = a / Math.sqrt(1 - e2 * Math.sin(phi_rad) ** 2);
+                    
+                    const X = N * Math.cos(phi_rad);
+                    const Y = 0;
+                    const Z = N * (1 - e2) * Math.sin(phi_rad);
+                    
+                    addPoint(X, Y, Z);
+                } else {
+                    document.getElementById('resultados').innerHTML = `
+                        <div class="error">Error: ${data.error}</div>
+                    `;
+                }
             } catch (error) {
-                alert('Error al calcular: ' + error.message);
+                document.getElementById('resultados').innerHTML = `
+                    <div class="error">Error de conexión: ${error.message}</div>
+                `;
             }
+        }
+        
+        function mostrarResultados(resultados) {
+            const div = document.getElementById('resultados');
+            
+            div.innerHTML = `
+                <div class="resultados">
+                    <h3>Resultados de la Transformación</h3>
+                    
+                    <div class="resultado-item">
+                        <h3>φ (Latitud Geodésica)</h3>
+                        <p><strong>Decimal:</strong> ${resultados.phi.decimal.toFixed(10)}°</p>
+                        <p><strong>DMS:</strong> ${resultados.phi.dms[0]}° ${resultados.phi.dms[1]}' ${resultados.phi.dms[2].toFixed(4)}"</p>
+                    </div>
+                    
+                    <div class="resultado-item">
+                        <h3>θ (Latitud Paramétrica)</h3>
+                        <p><strong>Decimal:</strong> ${resultados.theta.decimal.toFixed(10)}°</p>
+                        <p><strong>DMS:</strong> ${resultados.theta.dms[0]}° ${resultados.theta.dms[1]}' ${resultados.theta.dms[2].toFixed(4)}"</p>
+                    </div>
+                    
+                    <div class="resultado-item">
+                        <h3>ω (Latitud Geocéntrica)</h3>
+                        <p><strong>Decimal:</strong> ${resultados.omega.decimal.toFixed(10)}°</p>
+                        <p><strong>DMS:</strong> ${resultados.omega.dms[0]}° ${resultados.omega.dms[1]}' ${resultados.omega.dms[2].toFixed(4)}"</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
         });
+        
+        initThree();
     </script>
 </body>
 </html>

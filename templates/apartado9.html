@@ -1,91 +1,146 @@
-<!-- apartado2.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apartado 2</title>
+    <title>Apartado 9 - En Construcción</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #232526 0%, #414345 100%);
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .btn-volver {
-            display: inline-block;
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
             background: white;
-            color: #764ba2;
-            padding: 10px 30px;
-            border-radius: 25px;
+            color: #232526;
             text-decoration: none;
+            border-radius: 5px;
             font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            z-index: 100;
         }
-
-        .btn-volver:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
+        .btn-back:hover { transform: scale(1.05); }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            max-width: 800px;
             background: white;
-            border-radius: 15px;
-            padding: 40px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            border-radius: 20px;
+            padding: 60px;
             text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
-
-        .container h2 {
-            color: #667eea;
-            font-size: 2em;
+        .icon {
+            font-size: 120px;
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        h1 {
+            color: #232526;
+            font-size: 3em;
             margin-bottom: 20px;
         }
-
-        .container p {
+        p {
             color: #666;
             font-size: 1.2em;
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+        .features {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        .features h2 {
+            color: #232526;
+            margin-bottom: 20px;
+        }
+        .feature-list {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .feature-list li::before {
+            content: "🚀 ";
+            margin-right: 10px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: width 2s ease;
+        }
+        .loaded .progress-fill {
+            width: 85%;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>📊 Apartado 2</h1>
-        <a href="/" class="btn-volver">← Volver al Inicio</a>
-    </div>
-
-    <div class="container">
-        <h2>En Construcción</h2>
-        <p>Este apartado está listo para ser desarrollado.</p>
+    <a href="/" class="btn-back">← Volver</a>
+    
+    <div class="container loaded">
+        <div class="icon">🚧</div>
+        <h1>Apartado 9</h1>
+        <h2 style="color: #666; margin-bottom: 30px;">En Construcción</h2>
+        
+        <p>
+            Este módulo está siendo desarrollado con nuevas funcionalidades avanzadas 
+            de geodesia. Próximamente podrás acceder a herramientas adicionales para 
+            tus cálculos geodésicos de precisión.
+        </p>
+        
+        <div class="features">
+            <h2>📋 Funcionalidades Planificadas</h2>
+            <ul class="feature-list">
+                <li><strong>Cálculo de Azimut y Distancia:</strong> Entre dos puntos geodésicos</li>
+                <li><strong>Problema de Pothenot:</strong> Determinación de posición por intersección</li>
+                <li><strong>Proyección Cartográfica:</strong> Conversión a coordenadas planas</li>
+                <li><strong>Cálculo de Geoide:</strong> Determinación de ondulación geoidal</li>
+                <li><strong>Análisis de Precisión:</strong> Estadísticas y errores de medición</li>
+                <li><strong>Exportación de Datos:</strong> Generación de reportes en PDF/Excel</li>
+            </ul>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill">85% Completado</div>
+        </div>
+        
+        <p style="margin-top: 40px; font-size: 1em; color: #999;">
+            ¿Tienes sugerencias? Compártelas con tu instructor para mejorar esta herramienta.
+        </p>
     </div>
 </body>
 </html>
-
-<!-- apartado3.html - apartado9.html -->
-<!-- Copiar la misma estructura cambiando solo:
-     - El título "Apartado X"
-     - El color del gradiente si deseas
-     - Mantener la estructura para facilitar desarrollo futuro
--->
