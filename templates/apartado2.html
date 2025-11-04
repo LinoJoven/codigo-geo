@@ -33,6 +33,7 @@
             border-radius: 5px;
             font-weight: bold;
             transition: transform 0.2s;
+            z-index: 100;
         }
         .btn-back:hover { transform: scale(1.05); }
         .container {
@@ -106,6 +107,16 @@
             border-radius: 5px;
             margin-top: 20px;
         }
+        .controls-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .controls-info h4 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
         @media (max-width: 1024px) {
             .container { grid-template-columns: 1fr; }
         }
@@ -176,24 +187,37 @@
 
         <div class="panel">
             <h2>Visualización 3D</h2>
+            <div class="controls-info">
+                <h4>🎮 Controles Interactivos</h4>
+                <p><strong>Click izquierdo + arrastrar:</strong> Rotar</p>
+                <p><strong>Rueda del mouse:</strong> Zoom</p>
+                <p><strong>Click derecho + arrastrar:</strong> Mover</p>
+            </div>
             <div id="canvas-container"></div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script>
-        let scene, camera, renderer, ellipsoid, point;
+        let scene, camera, renderer, controls, ellipsoid, point, meridian, parallel;
         
         function initThree() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0a0a);
             
-            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 20000000);
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 50000000);
             camera.position.set(15000000, 10000000, 15000000);
             
             renderer = new THREE.WebGLRenderer({ antialias: true });
             const container = document.getElementById('canvas-container');
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
+            
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 10000000;
+            controls.maxDistance = 30000000;
             
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
@@ -210,24 +234,27 @@
             const material = new THREE.MeshPhongMaterial({
                 color: 0x2c5364,
                 transparent: true,
-                opacity: 0.7
+                opacity: 0.5,
+                side: THREE.DoubleSide
             });
             
             ellipsoid = new THREE.Mesh(geometry, material);
             scene.add(ellipsoid);
             
-            const wireframeGeometry = new THREE.SphereGeometry(a * 1.01, 32, 32);
+            const wireframeGeometry = new THREE.SphereGeometry(a * 1.005, 32, 16);
             wireframeGeometry.scale(1, 1, b/a);
-            const wireframeMaterial = new THREE.MeshBasicMaterial({
+            const wireframeMaterial = new THREE.LineBasicMaterial({
                 color: 0xffffff,
-                wireframe: true,
                 transparent: true,
-                opacity: 0.2
+                opacity: 0.15
             });
-            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+            const wireframe = new THREE.LineSegments(
+                new THREE.EdgesGeometry(wireframeGeometry),
+                wireframeMaterial
+            );
             scene.add(wireframe);
             
-            const axesHelper = new THREE.AxesHelper(8000000);
+            const axesHelper = new THREE.AxesHelper(10000000);
             scene.add(axesHelper);
             
             animate();
@@ -235,26 +262,108 @@
         
         function animate() {
             requestAnimationFrame(animate);
-            ellipsoid.rotation.y += 0.001;
+            controls.update();
             renderer.render(scene, camera);
         }
         
-        function addPoint(x, y, z) {
-            if (point) scene.remove(point);
+        function addPoint(x, y, z, lat_decimal, lon_decimal) {
+            // Limpiar objetos previos
+            [point, meridian, parallel].forEach(obj => {
+                if (obj) scene.remove(obj);
+            });
             
-            const geometry = new THREE.SphereGeometry(300000, 32, 32);
+            scene.children.filter(child => child.type === 'Sprite').forEach(sprite => {
+                scene.remove(sprite);
+            });
+            
+            // Punto principal
+            const geometry = new THREE.SphereGeometry(250000, 32, 32);
             const material = new THREE.MeshBasicMaterial({ color: 0xff4444 });
             point = new THREE.Mesh(geometry, material);
             point.position.set(x, z, y);
             scene.add(point);
             
+            // Línea desde el origen
             const lineGeometry = new THREE.BufferGeometry().setFromPoints([
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(x, z, y)
             ]);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff4444 });
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff4444, linewidth: 2 });
             const line = new THREE.Line(lineGeometry, lineMaterial);
             scene.add(line);
+            
+            // Dibujar meridiano
+            drawMeridian(lon_decimal);
+            
+            // Dibujar paralelo
+            drawParallel(lat_decimal);
+            
+            // Etiqueta
+            createTextSprite('P(' + lat_decimal.toFixed(2) + '°, ' + lon_decimal.toFixed(2) + '°)', x, z + 800000, y);
+        }
+        
+        function drawMeridian(lon_decimal) {
+            const points = [];
+            const lambda = lon_decimal * Math.PI / 180;
+            const a = 6378137;
+            const e2 = 0.00669438002290;
+            
+            for (let lat = -90; lat <= 90; lat += 2) {
+                const phi = lat * Math.PI / 180;
+                const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+                const x = N * Math.cos(phi) * Math.cos(lambda);
+                const y = N * Math.cos(phi) * Math.sin(lambda);
+                const z = N * (1 - e2) * Math.sin(phi);
+                points.push(new THREE.Vector3(x, z, y));
+            }
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
+            meridian = new THREE.Line(geometry, material);
+            scene.add(meridian);
+        }
+        
+        function drawParallel(lat_decimal) {
+            const points = [];
+            const phi = lat_decimal * Math.PI / 180;
+            const a = 6378137;
+            const e2 = 0.00669438002290;
+            const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+            
+            for (let lon = 0; lon <= 360; lon += 2) {
+                const lambda = lon * Math.PI / 180;
+                const x = N * Math.cos(phi) * Math.cos(lambda);
+                const y = N * Math.cos(phi) * Math.sin(lambda);
+                const z = N * (1 - e2) * Math.sin(phi);
+                points.push(new THREE.Vector3(x, z, y));
+            }
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+            parallel = new THREE.Line(geometry, material);
+            scene.add(parallel);
+        }
+        
+        function createTextSprite(message, x, y, z) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+            
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.font = 'Bold 32px Arial';
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.fillText(message, 256, 70);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(2000000, 500000, 1);
+            sprite.position.set(x, y, z);
+            scene.add(sprite);
         }
         
         async function calcular() {
@@ -273,6 +382,30 @@
             
             if (isNaN(lat_grados) || isNaN(lon_grados)) {
                 alert('Ingrese valores válidos');
+                return;
+            }
+            
+            // Validaciones geodésicas
+            if (lat_minutos < 0 || lat_minutos >= 60 || lon_minutos < 0 || lon_minutos >= 60) {
+                alert('Los minutos deben estar entre 0 y 59');
+                return;
+            }
+            
+            if (lat_segundos < 0 || lat_segundos >= 60 || lon_segundos < 0 || lon_segundos >= 60) {
+                alert('Los segundos deben estar entre 0 y 59.999');
+                return;
+            }
+            
+            const lat_decimal = lat_grados + lat_minutos/60 + lat_segundos/3600;
+            const lon_decimal = lon_grados + lon_minutos/60 + lon_segundos/3600;
+            
+            if (lat_decimal < -90 || lat_decimal > 90) {
+                alert('La latitud debe estar entre -90° y 90°');
+                return;
+            }
+            
+            if (lon_decimal < -180 || lon_decimal > 180) {
+                alert('La longitud debe estar entre -180° y 180°');
                 return;
             }
             
@@ -300,7 +433,7 @@
                             </div>
                         </div>
                     `;
-                    addPoint(data.X, data.Y, data.Z);
+                    addPoint(data.X, data.Y, data.Z, lat_decimal, lon_decimal);
                 } else {
                     document.getElementById('resultados').innerHTML = `
                         <div class="error">Error: ${data.error}</div>

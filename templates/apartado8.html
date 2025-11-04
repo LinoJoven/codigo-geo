@@ -5,166 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apartado 8 - Transformación de Datums</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #614385 0%, #516395 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
         .btn-back {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background: white;
-            color: #614385;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: transform 0.2s;
-            z-index: 100;
+            position: fixed; top: 20px; left: 20px; padding: 10px 20px;
+            background: white; color: #614385; text-decoration: none;
+            border-radius: 5px; font-weight: bold; z-index: 100;
         }
-        .btn-back:hover { transform: scale(1.05); }
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
         }
-        .panel {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        .panel { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-        .coords-input {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-        }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
+        .coords-input { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         button {
-            width: 100%;
-            padding: 15px;
+            width: 100%; padding: 15px;
             background: linear-gradient(135deg, #614385 0%, #516395 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
+            color: white; border: none; border-radius: 5px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
         }
-        button:hover { transform: scale(1.02); }
-        .resultados {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
+        .resultados { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
         .resultado-item {
-            margin-bottom: 20px;
-            padding: 20px;
-            background: white;
-            border-left: 4px solid #614385;
-            border-radius: 5px;
-        }
-        .resultado-item h3 {
-            color: #614385;
-            margin-bottom: 15px;
-            font-size: 1.3em;
+            margin-bottom: 20px; padding: 20px;
+            background: white; border-left: 4px solid #614385; border-radius: 5px;
         }
         .datum-section {
-            background: #e8eaf6;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
+            background: #e8eaf6; padding: 15px; border-radius: 8px; margin-bottom: 15px;
         }
-        .datum-section h4 {
-            color: #3f51b5;
-            margin-bottom: 10px;
-        }
-        .coord-row {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-        .coord-label {
-            font-weight: bold;
-            color: #555;
-            min-width: 100px;
-        }
-        #canvas-container {
-            width: 100%;
-            height: 600px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #0a0a0a;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        small {
-            display: block;
-            margin-top: 5px;
-            color: #666;
-        }
-        .info-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .info-box h4 {
-            color: #856404;
-            margin-bottom: 8px;
-        }
-        .warning-box {
-            background: #f8d7da;
-            border: 2px solid #dc3545;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-        .warning-box h4 {
-            color: #721c24;
-            margin-bottom: 8px;
-        }
-        @media (max-width: 1024px) {
-            .container { grid-template-columns: 1fr; }
-        }
+        #canvas-container { width: 100%; height: 600px; border-radius: 10px; overflow: hidden; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .controls-info { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        small { display: block; margin-top: 5px; color: #666; font-size: 0.85em; }
+        .info-box { background: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .warning-box { background: #f8d7da; border: 2px solid #dc3545; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -172,7 +57,7 @@
     
     <div class="header">
         <h1>🗺️ Transformación de Datums</h1>
-        <p>Conversión entre Datum Bogotá, WGS84 y GRS80</p>
+        <p>Datum Bogotá → WGS84 y GRS80</p>
     </div>
 
     <div class="container">
@@ -180,25 +65,25 @@
             <h2>Coordenadas en Datum Bogotá</h2>
             
             <div class="info-box">
-                <h4>ℹ️ Sobre los Datums</h4>
-                <p><strong>Datum Bogotá:</strong> Basado en el elipsoide Internacional 1924, usado históricamente en Colombia</p>
-                <p><strong>WGS84:</strong> World Geodetic System 1984, estándar global (GPS)</p>
-                <p><strong>GRS80:</strong> Geodetic Reference System 1980, muy similar a WGS84</p>
+                <h4>ℹ️ Datums</h4>
+                <p><strong>Bogotá:</strong> Elipsoide Internacional 1924</p>
+                <p><strong>WGS84:</strong> Sistema global GPS</p>
+                <p><strong>GRS80:</strong> Sistema geodésico de referencia</p>
             </div>
             
             <div class="form-group">
                 <label>Latitud (φ) - Datum Bogotá:</label>
                 <div class="coords-input">
                     <div>
-                        <input type="number" id="phi_grados" placeholder="Grados" step="any">
+                        <input type="number" id="phi_grados" placeholder="Grados" min="-90" max="90">
                         <small>Grados</small>
                     </div>
                     <div>
-                        <input type="number" id="phi_minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <input type="number" id="phi_minutos" placeholder="0" min="0" max="59" value="0">
                         <small>Minutos</small>
                     </div>
                     <div>
-                        <input type="number" id="phi_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <input type="number" id="phi_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
                         <small>Segundos</small>
                     </div>
                 </div>
@@ -208,328 +93,250 @@
                 <label>Longitud (λ) - Datum Bogotá:</label>
                 <div class="coords-input">
                     <div>
-                        <input type="number" id="lambda_grados" placeholder="Grados" step="any">
+                        <input type="number" id="lambda_grados" placeholder="Grados" min="-180" max="180">
                         <small>Grados</small>
                     </div>
                     <div>
-                        <input type="number" id="lambda_minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <input type="number" id="lambda_minutos" placeholder="0" min="0" max="59" value="0">
                         <small>Minutos</small>
                     </div>
                     <div>
-                        <input type="number" id="lambda_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <input type="number" id="lambda_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
                         <small>Segundos</small>
                     </div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Altura Elipsoidal (h) en metros:</label>
-                <input type="number" id="h" placeholder="Ej: 2640" step="any">
-                <small>Altura sobre el elipsoide de referencia</small>
+                <label>Altura (h) en metros:</label>
+                <input type="number" id="h" placeholder="Ej: 2640" step="0.001">
+                <small>Altura elipsoidal</small>
             </div>
 
             <div class="warning-box">
                 <h4>⚠️ Importante</h4>
-                <p>Los parámetros de transformación son aproximados para Colombia. Para trabajos de alta precisión, consulte los parámetros oficiales del IGAC.</p>
+                <p>Parámetros aproximados para Colombia. Para precisión alta, consulte IGAC.</p>
             </div>
 
-            <button onclick="calcular()">🔄 Transformar Coordenadas</button>
-
+            <button onclick="calcular()">🔄 Transformar</button>
             <div id="resultados"></div>
         </div>
 
         <div class="panel">
-            <h2>Visualización de Datums</h2>
+            <h2>Visualización</h2>
+            <div class="controls-info">
+                <h4>🎮 Controles</h4>
+                <p><strong>Izquierdo:</strong> Rotar | <strong>Rueda:</strong> Zoom | <strong>Derecho:</strong> Mover</p>
+            </div>
             <div id="canvas-container"></div>
             <div style="margin-top: 15px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
-                <p style="margin-bottom: 10px;"><strong>🔴 Datum Bogotá:</strong> Punto original</p>
-                <p style="margin-bottom: 10px;"><strong>🟢 WGS84:</strong> Punto transformado</p>
-                <p style="margin-bottom: 10px;"><strong>🔵 GRS80:</strong> Punto transformado</p>
-                <p style="font-size: 0.9em; color: #666;">Las diferencias son muy pequeñas y pueden no ser visibles a esta escala</p>
+                <p><strong>🔴 Rojo:</strong> Bogotá | <strong>🟢 Verde:</strong> WGS84 | <strong>🔵 Azul:</strong> GRS80</p>
             </div>
         </div>
     </div>
 
     <script>
-        let scene, camera, renderer, ellipsoid;
+        let scene, camera, renderer, controls;
         
-        function initThree() {
+        function init3D() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0a0a);
-            
-            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 20000000);
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 50000000);
             camera.position.set(15000000, 10000000, 15000000);
             
-            renderer = new THREE.WebGLRenderer({ antialias: true });
             const container = document.getElementById('canvas-container');
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
             
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 10000000;
+            controls.maxDistance = 30000000;
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10000000, 10000000, 10000000);
-            scene.add(directionalLight);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(10000000, 10000000, 10000000);
+            scene.add(light);
             
-            const a = 6378137;
-            const b = 6356752.314245;
-            const geometry = new THREE.SphereGeometry(a, 64, 64);
-            geometry.scale(1, 1, b/a);
+            const geo = new THREE.SphereGeometry(6378137, 64, 64);
+            geo.scale(1, 1, 6356752/6378137);
+            scene.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ 
+                color: 0x614385, transparent: true, opacity: 0.5 
+            })));
             
-            const material = new THREE.MeshPhongMaterial({
-                color: 0x614385,
-                transparent: true,
-                opacity: 0.6
-            });
-            
-            ellipsoid = new THREE.Mesh(geometry, material);
-            scene.add(ellipsoid);
-            
-            const wireframeGeometry = new THREE.SphereGeometry(a * 1.01, 32, 32);
-            wireframeGeometry.scale(1, 1, b/a);
-            const wireframeMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.2
-            });
-            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
-            scene.add(wireframe);
-            
-            const axesHelper = new THREE.AxesHelper(8000000);
-            scene.add(axesHelper);
+            const wireGeo = new THREE.SphereGeometry(6378137*1.005, 24, 24);
+            wireGeo.scale(1, 1, 6356752/6378137);
+            scene.add(new THREE.LineSegments(
+                new THREE.EdgesGeometry(wireGeo),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })
+            ));
+            scene.add(new THREE.AxesHelper(10000000));
             
             animate();
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
         }
         
         function animate() {
             requestAnimationFrame(animate);
-            ellipsoid.rotation.y += 0.001;
+            controls.update();
             renderer.render(scene, camera);
         }
         
-        function addPoints(dataBogota, dataWGS84, dataGRS80) {
-            // Limpiar puntos anteriores
-            scene.children.forEach(child => {
-                if (child.type === 'Mesh' && child !== ellipsoid && child.geometry.type === 'SphereGeometry' && child.geometry.parameters.radius < 500000) {
-                    scene.remove(child);
-                }
-            });
-            
-            // Convertir a cartesianas para visualización
-            const phi_bog = dataBogota.phi * Math.PI / 180;
-            const lambda_bog = dataBogota.lambda * Math.PI / 180;
-            const a = 6378137;
+        function phiLamHtoXYZ(phi, lam, h) {
+            const phiR = phi * Math.PI / 180;
+            const lamR = lam * Math.PI / 180;
             const e2 = 0.00669438002290;
-            const N = a / Math.sqrt(1 - e2 * Math.sin(phi_bog) ** 2);
+            const N = 6378137 / Math.sqrt(1 - e2 * Math.sin(phiR)**2);
+            return [
+                (N + h) * Math.cos(phiR) * Math.cos(lamR),
+                (N + h) * Math.cos(phiR) * Math.sin(lamR),
+                (N * (1 - e2) + h) * Math.sin(phiR)
+            ];
+        }
+        
+        function addPoints(bog, wgs, grs) {
+            scene.children = scene.children.filter(c => 
+                !(c.type === 'Mesh' && c.geometry.type === 'SphereGeometry' && c.geometry.parameters.radius < 500000) &&
+                c.type !== 'Line'
+            );
             
-            const X_bog = (N + dataBogota.h) * Math.cos(phi_bog) * Math.cos(lambda_bog);
-            const Y_bog = (N + dataBogota.h) * Math.cos(phi_bog) * Math.sin(lambda_bog);
-            const Z_bog = (N * (1 - e2) + dataBogota.h) * Math.sin(phi_bog);
+            const [xBog, yBog, zBog] = phiLamHtoXYZ(bog.phi, bog.lam, bog.h);
+            const [xWgs, yWgs, zWgs] = phiLamHtoXYZ(wgs.phi, wgs.lam, wgs.h);
+            const [xGrs, yGrs, zGrs] = phiLamHtoXYZ(grs.phi, grs.lam, grs.h);
             
-            // Punto Datum Bogotá (rojo)
-            const geometryBog = new THREE.SphereGeometry(400000, 32, 32);
-            const materialBog = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            const pointBog = new THREE.Mesh(geometryBog, materialBog);
-            pointBog.position.set(X_bog, Z_bog, Y_bog);
-            scene.add(pointBog);
+            const pBog = new THREE.Mesh(
+                new THREE.SphereGeometry(400000, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0xff0000 })
+            );
+            pBog.position.set(xBog, zBog, yBog);
+            scene.add(pBog);
             
-            // Punto WGS84 (verde)
-            const phi_wgs = dataWGS84.phi * Math.PI / 180;
-            const lambda_wgs = dataWGS84.lambda * Math.PI / 180;
-            const N_wgs = a / Math.sqrt(1 - e2 * Math.sin(phi_wgs) ** 2);
+            const pWgs = new THREE.Mesh(
+                new THREE.SphereGeometry(350000, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+            );
+            pWgs.position.set(xWgs, zWgs, yWgs);
+            scene.add(pWgs);
             
-            const X_wgs = (N_wgs + dataWGS84.h) * Math.cos(phi_wgs) * Math.cos(lambda_wgs);
-            const Y_wgs = (N_wgs + dataWGS84.h) * Math.cos(phi_wgs) * Math.sin(lambda_wgs);
-            const Z_wgs = (N_wgs * (1 - e2) + dataWGS84.h) * Math.sin(phi_wgs);
+            const pGrs = new THREE.Mesh(
+                new THREE.SphereGeometry(350000, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0x0000ff })
+            );
+            pGrs.position.set(xGrs, zGrs, yGrs);
+            scene.add(pGrs);
             
-            const geometryWGS = new THREE.SphereGeometry(350000, 32, 32);
-            const materialWGS = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-            const pointWGS = new THREE.Mesh(geometryWGS, materialWGS);
-            pointWGS.position.set(X_wgs, Z_wgs, Y_wgs);
-            scene.add(pointWGS);
-            
-            // Punto GRS80 (azul)
-            const phi_grs = dataGRS80.phi * Math.PI / 180;
-            const lambda_grs = dataGRS80.lambda * Math.PI / 180;
-            const N_grs = a / Math.sqrt(1 - e2 * Math.sin(phi_grs) ** 2);
-            
-            const X_grs = (N_grs + dataGRS80.h) * Math.cos(phi_grs) * Math.cos(lambda_grs);
-            const Y_grs = (N_grs + dataGRS80.h) * Math.cos(phi_grs) * Math.sin(lambda_grs);
-            const Z_grs = (N_grs * (1 - e2) + dataGRS80.h) * Math.sin(phi_grs);
-            
-            const geometryGRS = new THREE.SphereGeometry(350000, 32, 32);
-            const materialGRS = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-            const pointGRS = new THREE.Mesh(geometryGRS, materialGRS);
-            pointGRS.position.set(X_grs, Z_grs, Y_grs);
-            scene.add(pointGRS);
+            scene.add(new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(xBog, zBog, yBog),
+                    new THREE.Vector3(xWgs, zWgs, yWgs)
+                ]),
+                new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 })
+            ));
         }
         
         async function calcular() {
-            const phi_grados = parseFloat(document.getElementById('phi_grados').value);
-            const phi_minutos = parseFloat(document.getElementById('phi_minutos').value) || 0;
-            const phi_segundos = parseFloat(document.getElementById('phi_segundos').value) || 0;
-            
-            const lambda_grados = parseFloat(document.getElementById('lambda_grados').value);
-            const lambda_minutos = parseFloat(document.getElementById('lambda_minutos').value) || 0;
-            const lambda_segundos = parseFloat(document.getElementById('lambda_segundos').value) || 0;
-            
+            const phi_g = parseFloat(document.getElementById('phi_grados').value);
+            const phi_m = parseFloat(document.getElementById('phi_minutos').value) || 0;
+            const phi_s = parseFloat(document.getElementById('phi_segundos').value) || 0;
+            const lam_g = parseFloat(document.getElementById('lambda_grados').value);
+            const lam_m = parseFloat(document.getElementById('lambda_minutos').value) || 0;
+            const lam_s = parseFloat(document.getElementById('lambda_segundos').value) || 0;
             const h = parseFloat(document.getElementById('h').value);
             
-            if (isNaN(phi_grados) || isNaN(lambda_grados) || isNaN(h)) {
-                alert('Por favor complete todos los campos');
+            if (isNaN(phi_g) || isNaN(lam_g) || isNaN(h)) {
+                alert('Complete todos los campos');
+                return;
+            }
+            
+            if (phi_m < 0 || phi_m >= 60 || lam_m < 0 || lam_m >= 60) {
+                alert('Minutos: 0-59');
+                return;
+            }
+            if (phi_s < 0 || phi_s >= 60 || lam_s < 0 || lam_s >= 60) {
+                alert('Segundos: 0-59.999');
+                return;
+            }
+            
+            const phi_dec = phi_g + phi_m/60 + phi_s/3600;
+            const lam_dec = lam_g + lam_m/60 + lam_s/3600;
+            
+            if (phi_dec < -90 || phi_dec > 90) {
+                alert('Latitud: -90° a 90°');
+                return;
+            }
+            if (lam_dec < -180 || lam_dec > 180) {
+                alert('Longitud: -180° a 180°');
                 return;
             }
             
             try {
-                const response = await fetch('/api/apartado8', {
+                const res = await fetch('/api/apartado8', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        phi_grados, phi_minutos, phi_segundos,
-                        lambda_grados, lambda_minutos, lambda_segundos,
-                        h
+                        phi_grados: phi_g, phi_minutos: phi_m, phi_segundos: phi_s,
+                        lambda_grados: lam_g, lambda_minutos: lam_m, lambda_segundos: lam_s, h
                     })
                 });
-                
-                const data = await response.json();
+                const data = await res.json();
                 
                 if (data.success) {
-                    const phi_bog_decimal = phi_grados + phi_minutos/60 + phi_segundos/3600;
-                    const lambda_bog_decimal = lambda_grados + lambda_minutos/60 + lambda_segundos/3600;
-                    
-                    const phi_wgs_dms = data.wgs84.phi.dms;
-                    const lambda_wgs_dms = data.wgs84.lambda.dms;
-                    const phi_grs_dms = data.grs80.phi.dms;
-                    const lambda_grs_dms = data.grs80.lambda.dms;
-                    
-                    const diff_phi_wgs = Math.abs(data.wgs84.phi.decimal - phi_bog_decimal) * 3600;
-                    const diff_lambda_wgs = Math.abs(data.wgs84.lambda.decimal - lambda_bog_decimal) * 3600;
-                    const diff_h_wgs = Math.abs(data.wgs84.h - h);
+                    const wgs = data.wgs84;
+                    const grs = data.grs80;
                     
                     document.getElementById('resultados').innerHTML = `
                         <div class="resultados">
-                            <h3>Resultados de la Transformación</h3>
+                            <h3>Transformación Completada</h3>
                             
                             <div class="resultado-item">
-                                <h3>📍 Datum Bogotá (Original)</h3>
+                                <h4>📍 Datum Bogotá (Original)</h4>
                                 <div class="datum-section">
-                                    <h4>Coordenadas Geodésicas</h4>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Latitud φ:</span>
-                                        <span>${phi_grados}° ${phi_minutos}' ${phi_segundos}"</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Longitud λ:</span>
-                                        <span>${lambda_grados}° ${lambda_minutos}' ${lambda_segundos}"</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Altura h:</span>
-                                        <span>${h.toFixed(3)} m</span>
-                                    </div>
+                                    <p><strong>φ:</strong> ${phi_g}° ${phi_m}' ${phi_s}"</p>
+                                    <p><strong>λ:</strong> ${lam_g}° ${lam_m}' ${lam_s}"</p>
+                                    <p><strong>h:</strong> ${h.toFixed(3)} m</p>
                                 </div>
                             </div>
                             
                             <div class="resultado-item">
-                                <h3>🌍 WGS84 (Transformado)</h3>
+                                <h4>🌍 WGS84</h4>
                                 <div class="datum-section">
-                                    <h4>Coordenadas Geodésicas</h4>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Latitud φ:</span>
-                                        <span>${phi_wgs_dms[0]}° ${phi_wgs_dms[1]}' ${phi_wgs_dms[2].toFixed(4)}"</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Decimal:</span>
-                                        <span>${data.wgs84.phi.decimal.toFixed(10)}°</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Longitud λ:</span>
-                                        <span>${lambda_wgs_dms[0]}° ${lambda_wgs_dms[1]}' ${lambda_wgs_dms[2].toFixed(4)}"</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Decimal:</span>
-                                        <span>${data.wgs84.lambda.decimal.toFixed(10)}°</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Altura h:</span>
-                                        <span>${data.wgs84.h.toFixed(3)} m</span>
-                                    </div>
+                                    <p><strong>φ:</strong> ${wgs.phi.dms[0]}° ${wgs.phi.dms[1]}' ${wgs.phi.dms[2].toFixed(4)}"</p>
+                                    <p><strong>λ:</strong> ${wgs.lambda.dms[0]}° ${wgs.lambda.dms[1]}' ${wgs.lambda.dms[2].toFixed(4)}"</p>
+                                    <p><strong>h:</strong> ${wgs.h.toFixed(3)} m</p>
                                 </div>
                             </div>
                             
                             <div class="resultado-item">
-                                <h3>🗺️ GRS80 (Transformado)</h3>
+                                <h4>🗺️ GRS80</h4>
                                 <div class="datum-section">
-                                    <h4>Coordenadas Geodésicas</h4>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Latitud φ:</span>
-                                        <span>${phi_grs_dms[0]}° ${phi_grs_dms[1]}' ${phi_grs_dms[2].toFixed(4)}"</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Decimal:</span>
-                                        <span>${data.grs80.phi.decimal.toFixed(10)}°</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Longitud λ:</span>
-                                        <span>${lambda_grs_dms[0]}° ${lambda_grs_dms[1]}' ${lambda_grs_dms[2].toFixed(4)}"</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Decimal:</span>
-                                        <span>${data.grs80.lambda.decimal.toFixed(10)}°</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Altura h:</span>
-                                        <span>${data.grs80.h.toFixed(3)} m</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="resultado-item">
-                                <h3>📊 Diferencias (Bogotá → WGS84)</h3>
-                                <div class="datum-section">
-                                    <div class="coord-row">
-                                        <span class="coord-label">Δφ:</span>
-                                        <span>${diff_phi_wgs.toFixed(4)} segundos de arco</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Δλ:</span>
-                                        <span>${diff_lambda_wgs.toFixed(4)} segundos de arco</span>
-                                    </div>
-                                    <div class="coord-row">
-                                        <span class="coord-label">Δh:</span>
-                                        <span>${diff_h_wgs.toFixed(3)} metros</span>
-                                    </div>
+                                    <p><strong>φ:</strong> ${grs.phi.dms[0]}° ${grs.phi.dms[1]}' ${grs.phi.dms[2].toFixed(4)}"</p>
+                                    <p><strong>λ:</strong> ${grs.lambda.dms[0]}° ${grs.lambda.dms[1]}' ${grs.lambda.dms[2].toFixed(4)}"</p>
+                                    <p><strong>h:</strong> ${grs.h.toFixed(3)} m</p>
                                 </div>
                             </div>
                         </div>
                     `;
                     
                     addPoints(
-                        { phi: phi_bog_decimal, lambda: lambda_bog_decimal, h: h },
-                        { phi: data.wgs84.phi.decimal, lambda: data.wgs84.lambda.decimal, h: data.wgs84.h },
-                        { phi: data.grs80.phi.decimal, lambda: data.grs80.lambda.decimal, h: data.grs80.h }
+                        {phi: phi_dec, lam: lam_dec, h},
+                        {phi: wgs.phi.decimal, lam: wgs.lambda.decimal, h: wgs.h},
+                        {phi: grs.phi.decimal, lam: grs.lambda.decimal, h: grs.h}
                     );
                 } else {
-                    document.getElementById('resultados').innerHTML = `
-                        <div class="error">Error: ${data.error}</div>
-                    `;
+                    document.getElementById('resultados').innerHTML = `<div class="error">${data.error}</div>`;
                 }
-            } catch (error) {
-                document.getElementById('resultados').innerHTML = `
-                    <div class="error">Error de conexión: ${error.message}</div>
-                `;
+            } catch (e) {
+                document.getElementById('resultados').innerHTML = `<div class="error">${e.message}</div>`;
             }
         }
         
-        window.addEventListener('resize', () => {
-            const container = document.getElementById('canvas-container');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        });
-        
-        initThree();
+        init3D();
     </script>
 </body>
 </html>

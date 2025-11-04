@@ -1,272 +1,133 @@
 from flask import Flask, render_template, request, jsonify
 import numpy as np
-import math
 
 app = Flask(__name__)
 
-# Parámetros del Elipsoide WGS84
-a_wgs84 = 6378137.0  # Semi-eje mayor
-f_wgs84 = 1/298.257223563  # Achatamiento
-b_wgs84 = a_wgs84 * (1 - f_wgs84)  # Semi-eje menor
-e2_wgs84 = 2*f_wgs84 - f_wgs84**2  # Primera excentricidad al cuadrado
-ep2_wgs84 = e2_wgs84 / (1 - e2_wgs84)  # Segunda excentricidad al cuadrado
+# Constantes WGS84
+A = 6378137.0
+F = 1/298.257223563
+B = A * (1 - F)
+E2 = 2*F - F**2
+EP2 = E2 / (1 - E2)
 
-# Parámetros del Elipsoide GRS80
-a_grs80 = 6378137.0
-f_grs80 = 1/298.257222101
-b_grs80 = a_grs80 * (1 - f_grs80)
-e2_grs80 = 2*f_grs80 - f_grs80**2
-ep2_grs80 = e2_grs80 / (1 - e2_grs80)
+# Constantes Datum Bogotá
+A_BOG = 6378388.0
+F_BOG = 1/297.0
+B_BOG = A_BOG * (1 - F_BOG)
+E2_BOG = 2*F_BOG - F_BOG**2
 
-# Parámetros del Datum Bogotá (Internacional 1924)
-a_bogota = 6378388.0
-f_bogota = 1/297.0
-b_bogota = a_bogota * (1 - f_bogota)
-e2_bogota = 2*f_bogota - f_bogota**2
+def dms_to_decimal(g, m, s):
+    return g + m/60.0 + s/3600.0
 
-# Funciones auxiliares de conversión
-def dms_to_decimal(grados, minutos, segundos):
-    """Convierte grados, minutos, segundos a grados decimales"""
-    return grados + minutos/60.0 + segundos/3600.0
+def decimal_to_dms(d):
+    g = int(d)
+    m_dec = abs((d - g) * 60)
+    m = int(m_dec)
+    s = (m_dec - m) * 60
+    return g, m, s
 
-def decimal_to_dms(decimal):
-    """Convierte grados decimales a grados, minutos, segundos"""
-    grados = int(decimal)
-    minutos_decimal = abs((decimal - grados) * 60)
-    minutos = int(minutos_decimal)
-    segundos = (minutos_decimal - minutos) * 60
-    return grados, minutos, segundos
+def validar_latitud(g, m, s):
+    if m < 0 or m >= 60:
+        raise ValueError("Minutos fuera de rango [0-59]")
+    if s < 0 or s >= 60:
+        raise ValueError("Segundos fuera de rango [0-59.999]")
+    d = dms_to_decimal(g, m, s)
+    if d < -90 or d > 90:
+        raise ValueError("Latitud fuera de rango [-90°, 90°]")
+    return True
 
-# APARTADO 1: Transformación de Latitudes
-def geodesica_a_parametrica(phi_rad):
-    """Convierte latitud geodésica a paramétrica"""
-    theta_rad = np.arctan((1 - f_wgs84) * np.tan(phi_rad))
-    return theta_rad
+def validar_longitud(g, m, s):
+    if m < 0 or m >= 60:
+        raise ValueError("Minutos fuera de rango [0-59]")
+    if s < 0 or s >= 60:
+        raise ValueError("Segundos fuera de rango [0-59.999]")
+    d = dms_to_decimal(g, m, s)
+    if d < -180 or d > 180:
+        raise ValueError("Longitud fuera de rango [-180°, 180°]")
+    return True
 
-def geodesica_a_geocentrica(phi_rad):
-    """Convierte latitud geodésica a geocéntrica"""
-    omega_rad = np.arctan((1 - e2_wgs84) * np.tan(phi_rad))
-    return omega_rad
+def phi_to_theta(phi):
+    return np.arctan((1 - F) * np.tan(phi))
 
-def parametrica_a_geodesica(theta_rad):
-    """Convierte latitud paramétrica a geodésica"""
-    phi_rad = np.arctan(np.tan(theta_rad) / (1 - f_wgs84))
-    return phi_rad
+def phi_to_omega(phi):
+    return np.arctan((1 - E2) * np.tan(phi))
 
-def parametrica_a_geocentrica(theta_rad):
-    """Convierte latitud paramétrica a geocéntrica"""
-    phi_rad = parametrica_a_geodesica(theta_rad)
-    omega_rad = geodesica_a_geocentrica(phi_rad)
-    return omega_rad
+def theta_to_phi(theta):
+    return np.arctan(np.tan(theta) / (1 - F))
 
-def geocentrica_a_geodesica(omega_rad):
-    """Convierte latitud geocéntrica a geodésica"""
-    phi_rad = np.arctan(np.tan(omega_rad) / (1 - e2_wgs84))
-    return phi_rad
+def omega_to_phi(omega):
+    return np.arctan(np.tan(omega) / (1 - E2))
 
-def geocentrica_a_parametrica(omega_rad):
-    """Convierte latitud geocéntrica a paramétrica"""
-    phi_rad = geocentrica_a_geodesica(omega_rad)
-    theta_rad = geodesica_a_parametrica(phi_rad)
-    return theta_rad
+def phi_lambda_to_xyz(phi_deg, lambda_deg, h=0):
+    phi = np.radians(phi_deg)
+    lam = np.radians(lambda_deg)
+    N = A / np.sqrt(1 - E2 * np.sin(phi)**2)
+    X = (N + h) * np.cos(phi) * np.cos(lam)
+    Y = (N + h) * np.cos(phi) * np.sin(lam)
+    Z = (N * (1 - E2) + h) * np.sin(phi)
+    return float(X), float(Y), float(Z)
 
-# APARTADO 2: Coordenadas con Lambda
-def theta_lambda_to_xyz(theta_deg, lambda_deg):
-    """Convierte (θ, λ) a (X, Y, Z)"""
-    theta_rad = np.radians(theta_deg)
-    lambda_rad = np.radians(lambda_deg)
-    
-    phi_rad = parametrica_a_geodesica(theta_rad)
-    N = a_wgs84 / np.sqrt(1 - e2_wgs84 * np.sin(phi_rad)**2)
-    
-    X = N * np.cos(phi_rad) * np.cos(lambda_rad)
-    Y = N * np.cos(phi_rad) * np.sin(lambda_rad)
-    Z = N * (1 - e2_wgs84) * np.sin(phi_rad)
-    
-    return X, Y, Z
-
-def phi_lambda_to_xyz(phi_deg, lambda_deg):
-    """Convierte (φ, λ) a (X, Y, Z)"""
-    phi_rad = np.radians(phi_deg)
-    lambda_rad = np.radians(lambda_deg)
-    
-    N = a_wgs84 / np.sqrt(1 - e2_wgs84 * np.sin(phi_rad)**2)
-    
-    X = N * np.cos(phi_rad) * np.cos(lambda_rad)
-    Y = N * np.cos(phi_rad) * np.sin(lambda_rad)
-    Z = N * (1 - e2_wgs84) * np.sin(phi_rad)
-    
-    return X, Y, Z
-
-def omega_lambda_to_xyz(omega_deg, lambda_deg):
-    """Convierte (ω, λ) a (X, Y, Z)"""
-    omega_rad = np.radians(omega_deg)
-    lambda_rad = np.radians(lambda_deg)
-    
-    phi_rad = geocentrica_a_geodesica(omega_rad)
-    N = a_wgs84 / np.sqrt(1 - e2_wgs84 * np.sin(phi_rad)**2)
-    
-    X = N * np.cos(phi_rad) * np.cos(lambda_rad)
-    Y = N * np.cos(phi_rad) * np.sin(lambda_rad)
-    Z = N * (1 - e2_wgs84) * np.sin(phi_rad)
-    
-    return X, Y, Z
-
-# APARTADO 3: Coordenadas con altura
-def phi_lambda_h_to_xyz(phi_deg, lambda_deg, h):
-    """Convierte (φ, λ, h) a (X, Y, Z)"""
-    phi_rad = np.radians(phi_deg)
-    lambda_rad = np.radians(lambda_deg)
-    
-    N = a_wgs84 / np.sqrt(1 - e2_wgs84 * np.sin(phi_rad)**2)
-    
-    X = (N + h) * np.cos(phi_rad) * np.cos(lambda_rad)
-    Y = (N + h) * np.cos(phi_rad) * np.sin(lambda_rad)
-    Z = (N * (1 - e2_wgs84) + h) * np.sin(phi_rad)
-    
-    return X, Y, Z
-
-# APARTADO 4: Problema inverso
 def xyz_to_phi_lambda_h(X, Y, Z):
-    """Convierte (X, Y, Z) a (φ, λ, h)"""
-    lambda_rad = np.arctan2(Y, X)
+    lam = np.arctan2(Y, X)
     p = np.sqrt(X**2 + Y**2)
-    
-    # Iteración para φ
-    phi_rad = np.arctan2(Z, p * (1 - e2_wgs84))
+    phi = np.arctan2(Z, p * (1 - E2))
     for _ in range(10):
-        N = a_wgs84 / np.sqrt(1 - e2_wgs84 * np.sin(phi_rad)**2)
-        h = p / np.cos(phi_rad) - N
-        phi_rad = np.arctan2(Z, p * (1 - e2_wgs84 * N / (N + h)))
-    
-    phi_deg = np.degrees(phi_rad)
-    lambda_deg = np.degrees(lambda_rad)
-    
-    return phi_deg, lambda_deg, h
+        N = A / np.sqrt(1 - E2 * np.sin(phi)**2)
+        h = p / np.cos(phi) - N
+        phi = np.arctan2(Z, p * (1 - E2 * N / (N + h)))
+    return np.degrees(phi), np.degrees(lam), h
 
-# APARTADO 5: Longitud de arco de meridiano
-def longitud_arco_meridiano(phi1_deg, phi2_deg, lambda_deg):
-    """Calcula la longitud del arco de meridiano entre phi1 y phi2"""
-    phi1_rad = np.radians(phi1_deg)
-    phi2_rad = np.radians(phi2_deg)
+def arco_meridiano(phi1, phi2, lam):
+    phi1_r, phi2_r = np.radians(phi1), np.radians(phi2)
+    lam_r = np.radians(lam)
     
-    # Fórmula de la longitud del arco de meridiano
-    A = a_wgs84 * (1 - e2_wgs84)
-    e4 = e2_wgs84 ** 2
-    e6 = e2_wgs84 ** 3
-    
-    # Coeficientes
-    c0 = 1 + 3*e2_wgs84/4 + 45*e4/64 + 175*e6/256
-    c2 = 3*e2_wgs84/4 + 15*e4/16 + 525*e6/512
+    A_calc = A * (1 - E2)
+    e4, e6 = E2**2, E2**3
+    c0 = 1 + 3*E2/4 + 45*e4/64 + 175*e6/256
+    c2 = 3*E2/4 + 15*e4/16 + 525*e6/512
     c4 = 15*e4/64 + 105*e6/256
     c6 = 35*e6/512
     
-    def M(phi):
-        return A * (c0*phi - c2*np.sin(2*phi)/2 + c4*np.sin(4*phi)/4 - c6*np.sin(6*phi)/6)
+    M = lambda phi: A_calc * (c0*phi - c2*np.sin(2*phi)/2 + c4*np.sin(4*phi)/4 - c6*np.sin(6*phi)/6)
+    s = M(phi2_r) - M(phi1_r)
     
-    s = M(phi2_rad) - M(phi1_rad)
+    puntos = []
+    for phi in np.linspace(phi1_r, phi2_r, 100):
+        N = A / np.sqrt(1 - E2 * np.sin(phi)**2)
+        X = N * np.cos(phi) * np.cos(lam_r)
+        Y = N * np.cos(phi) * np.sin(lam_r)
+        Z = N * (1 - E2) * np.sin(phi)
+        puntos.append([float(X), float(Y), float(Z)])
     
-    # Puntos para la gráfica
-    num_points = 100
-    phis = np.linspace(phi1_rad, phi2_rad, num_points)
-    lambda_rad = np.radians(lambda_deg)
-    
-    points = []
-    for phi in phis:
-        N = a_wgs84 / np.sqrt(1 - e2_wgs84 * np.sin(phi)**2)
-        X = N * np.cos(phi) * np.cos(lambda_rad)
-        Y = N * np.cos(phi) * np.sin(lambda_rad)
-        Z = N * (1 - e2_wgs84) * np.sin(phi)
-        points.append([X, Y, Z])
-    
-    return abs(s), points
+    return abs(s), puntos
 
-# APARTADO 6: Longitud de arco de paralelo
-def longitud_arco_paralelo(phi_deg, lambda1_deg, lambda2_deg):
-    """Calcula la longitud del arco de paralelo"""
-    phi_rad = np.radians(phi_deg)
-    lambda1_rad = np.radians(lambda1_deg)
-    lambda2_rad = np.radians(lambda2_deg)
+def arco_paralelo(phi, lam1, lam2):
+    phi_r = np.radians(phi)
+    lam1_r, lam2_r = np.radians(lam1), np.radians(lam2)
+    N = A / np.sqrt(1 - E2 * np.sin(phi_r)**2)
+    r = N * np.cos(phi_r)
+    s = r * abs(lam2_r - lam1_r)
     
-    N = a_wgs84 / np.sqrt(1 - e2_wgs84 * np.sin(phi_rad)**2)
-    r = N * np.cos(phi_rad)
+    puntos = []
+    for lam in np.linspace(lam1_r, lam2_r, 100):
+        X = N * np.cos(phi_r) * np.cos(lam)
+        Y = N * np.cos(phi_r) * np.sin(lam)
+        Z = N * (1 - E2) * np.sin(phi_r)
+        puntos.append([float(X), float(Y), float(Z)])
     
-    delta_lambda = abs(lambda2_rad - lambda1_rad)
-    s = r * delta_lambda
-    
-    # Puntos para la gráfica
-    num_points = 100
-    lambdas = np.linspace(lambda1_rad, lambda2_rad, num_points)
-    
-    points = []
-    for lam in lambdas:
-        X = N * np.cos(phi_rad) * np.cos(lam)
-        Y = N * np.cos(phi_rad) * np.sin(lam)
-        Z = N * (1 - e2_wgs84) * np.sin(phi_rad)
-        points.append([X, Y, Z])
-    
-    return s, points
+    return s, puntos
 
-# APARTADO 7: Nivelación diferencial
-def calcular_nivelacion(datos):
-    """Calcula la nivelación diferencial"""
-    resultados = []
-    cota_actual = datos['cota_inicial']
+def transform_bogota_wgs84(phi, lam, h):
+    dx, dy, dz = 307.0, 304.0, -318.0
+    phi_r, lam_r = np.radians(phi), np.radians(lam)
+    N = A_BOG / np.sqrt(1 - E2_BOG * np.sin(phi_r)**2)
     
-    for i, punto in enumerate(datos['puntos']):
-        v_mas = punto.get('v_mas', 0)
-        v_menos = punto.get('v_menos', 0)
-        
-        desnivel = v_mas - v_menos
-        cota_actual += desnivel
-        
-        resultados.append({
-            'estacion': i + 1,
-            'v_mas': v_mas,
-            'v_menos': v_menos,
-            'v_intermedia': punto.get('v_intermedia', None),
-            'desnivel': desnivel,
-            'cota': cota_actual,
-            'distancia': punto.get('distancia', 0)
-        })
+    X = (N + h) * np.cos(phi_r) * np.cos(lam_r) + dx
+    Y = (N + h) * np.cos(phi_r) * np.sin(lam_r) + dy
+    Z = (N * (1 - E2_BOG) + h) * np.sin(phi_r) + dz
     
-    return resultados
+    return xyz_to_phi_lambda_h(X, Y, Z)
 
-# APARTADO 8: Transformación de Datums
-def transformar_datum_bogota_a_wgs84(phi_deg, lambda_deg, h):
-    """Transforma de Datum Bogotá a WGS84"""
-    # Parámetros de transformación (valores aproximados para Colombia)
-    dx = 307.0  # metros
-    dy = 304.0
-    dz = -318.0
-    
-    # Convertir a cartesianas en Bogotá
-    phi_rad = np.radians(phi_deg)
-    lambda_rad = np.radians(lambda_deg)
-    
-    N_bog = a_bogota / np.sqrt(1 - e2_bogota * np.sin(phi_rad)**2)
-    
-    X_bog = (N_bog + h) * np.cos(phi_rad) * np.cos(lambda_rad)
-    Y_bog = (N_bog + h) * np.cos(phi_rad) * np.sin(lambda_rad)
-    Z_bog = (N_bog * (1 - e2_bogota) + h) * np.sin(phi_rad)
-    
-    # Aplicar traslación
-    X_wgs = X_bog + dx
-    Y_wgs = Y_bog + dy
-    Z_wgs = Z_bog + dz
-    
-    # Convertir a geodésicas WGS84
-    phi_wgs, lambda_wgs, h_wgs = xyz_to_phi_lambda_h(X_wgs, Y_wgs, Z_wgs)
-    
-    return phi_wgs, lambda_wgs, h_wgs
-
-def transformar_datum_bogota_a_grs80(phi_deg, lambda_deg, h):
-    """Transforma de Datum Bogotá a GRS80"""
-    # Similar a WGS84 con parámetros GRS80
-    phi_wgs, lambda_wgs, h_wgs = transformar_datum_bogota_a_wgs84(phi_deg, lambda_deg, h)
-    return phi_wgs, lambda_wgs, h_wgs
-
-# RUTAS
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -275,56 +136,37 @@ def index():
 def apartado(numero):
     return render_template(f'apartado{numero}.html')
 
-# APIs para cada apartado
 @app.route('/api/apartado1', methods=['POST'])
 def api_apartado1():
     try:
         data = request.json
-        tipo_entrada = data['tipo_entrada']
-        grados = float(data['grados'])
-        minutos = float(data['minutos'])
-        segundos = float(data['segundos'])
+        tipo = data['tipo_entrada']
+        g, m, s = float(data['grados']), float(data['minutos']), float(data['segundos'])
+        validar_latitud(g, m, s)
         
-        valor_decimal = dms_to_decimal(grados, minutos, segundos)
-        valor_rad = np.radians(valor_decimal)
+        val = np.radians(dms_to_decimal(g, m, s))
         
-        resultados = {}
+        if tipo == 'phi':
+            phi_r, theta_r, omega_r = val, phi_to_theta(val), phi_to_omega(val)
+        elif tipo == 'theta':
+            theta_r, phi_r, omega_r = val, theta_to_phi(val), phi_to_theta(theta_to_phi(val))
+            omega_r = phi_to_omega(phi_r)
+        else:  # omega
+            omega_r, phi_r = val, omega_to_phi(val)
+            theta_r = phi_to_theta(phi_r)
         
-        if tipo_entrada == 'phi':
-            theta_rad = geodesica_a_parametrica(valor_rad)
-            omega_rad = geodesica_a_geocentrica(valor_rad)
-            
-            theta_deg = np.degrees(theta_rad)
-            omega_deg = np.degrees(omega_rad)
-            
-            resultados['phi'] = {'decimal': valor_decimal, 'dms': decimal_to_dms(valor_decimal)}
-            resultados['theta'] = {'decimal': theta_deg, 'dms': decimal_to_dms(theta_deg)}
-            resultados['omega'] = {'decimal': omega_deg, 'dms': decimal_to_dms(omega_deg)}
-            
-        elif tipo_entrada == 'theta':
-            phi_rad = parametrica_a_geodesica(valor_rad)
-            omega_rad = parametrica_a_geocentrica(valor_rad)
-            
-            phi_deg = np.degrees(phi_rad)
-            omega_deg = np.degrees(omega_rad)
-            
-            resultados['phi'] = {'decimal': phi_deg, 'dms': decimal_to_dms(phi_deg)}
-            resultados['theta'] = {'decimal': valor_decimal, 'dms': decimal_to_dms(valor_decimal)}
-            resultados['omega'] = {'decimal': omega_deg, 'dms': decimal_to_dms(omega_deg)}
-            
-        elif tipo_entrada == 'omega':
-            phi_rad = geocentrica_a_geodesica(valor_rad)
-            theta_rad = geocentrica_a_parametrica(valor_rad)
-            
-            phi_deg = np.degrees(phi_rad)
-            theta_deg = np.degrees(theta_rad)
-            
-            resultados['phi'] = {'decimal': phi_deg, 'dms': decimal_to_dms(phi_deg)}
-            resultados['theta'] = {'decimal': theta_deg, 'dms': decimal_to_dms(theta_deg)}
-            resultados['omega'] = {'decimal': valor_decimal, 'dms': decimal_to_dms(valor_decimal)}
+        phi_deg, theta_deg, omega_deg = np.degrees(phi_r), np.degrees(theta_r), np.degrees(omega_r)
+        X, Y, Z = phi_lambda_to_xyz(phi_deg, 0)
         
-        return jsonify({'success': True, 'resultados': resultados})
-    
+        return jsonify({
+            'success': True,
+            'resultados': {
+                'phi': {'decimal': phi_deg, 'dms': decimal_to_dms(phi_deg)},
+                'theta': {'decimal': theta_deg, 'dms': decimal_to_dms(theta_deg)},
+                'omega': {'decimal': omega_deg, 'dms': decimal_to_dms(omega_deg)},
+                'coords': {'X': X, 'Y': Y, 'Z': Z}
+            }
+        })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -332,27 +174,23 @@ def api_apartado1():
 def api_apartado2():
     try:
         data = request.json
-        tipo_entrada = data['tipo_entrada']
+        tipo = data['tipo_entrada']
+        lat_g, lat_m, lat_s = float(data['lat_grados']), float(data['lat_minutos']), float(data['lat_segundos'])
+        lon_g, lon_m, lon_s = float(data['lon_grados']), float(data['lon_minutos']), float(data['lon_segundos'])
         
-        lat_g = float(data['lat_grados'])
-        lat_m = float(data['lat_minutos'])
-        lat_s = float(data['lat_segundos'])
-        lat_decimal = dms_to_decimal(lat_g, lat_m, lat_s)
+        validar_latitud(lat_g, lat_m, lat_s)
+        validar_longitud(lon_g, lon_m, lon_s)
         
-        lon_g = float(data['lon_grados'])
-        lon_m = float(data['lon_minutos'])
-        lon_s = float(data['lon_segundos'])
-        lon_decimal = dms_to_decimal(lon_g, lon_m, lon_s)
+        lat = dms_to_decimal(lat_g, lat_m, lat_s)
+        lon = dms_to_decimal(lon_g, lon_m, lon_s)
         
-        if tipo_entrada == 'theta':
-            X, Y, Z = theta_lambda_to_xyz(lat_decimal, lon_decimal)
-        elif tipo_entrada == 'phi':
-            X, Y, Z = phi_lambda_to_xyz(lat_decimal, lon_decimal)
-        elif tipo_entrada == 'omega':
-            X, Y, Z = omega_lambda_to_xyz(lat_decimal, lon_decimal)
+        if tipo == 'theta':
+            lat = np.degrees(theta_to_phi(np.radians(lat)))
+        elif tipo == 'omega':
+            lat = np.degrees(omega_to_phi(np.radians(lat)))
         
+        X, Y, Z = phi_lambda_to_xyz(lat, lon)
         return jsonify({'success': True, 'X': X, 'Y': Y, 'Z': Z})
-    
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -360,46 +198,34 @@ def api_apartado2():
 def api_apartado3():
     try:
         data = request.json
-        
-        phi_g = float(data['phi_grados'])
-        phi_m = float(data['phi_minutos'])
-        phi_s = float(data['phi_segundos'])
-        phi_decimal = dms_to_decimal(phi_g, phi_m, phi_s)
-        
-        lambda_g = float(data['lambda_grados'])
-        lambda_m = float(data['lambda_minutos'])
-        lambda_s = float(data['lambda_segundos'])
-        lambda_decimal = dms_to_decimal(lambda_g, lambda_m, lambda_s)
-        
+        phi_g, phi_m, phi_s = float(data['phi_grados']), float(data['phi_minutos']), float(data['phi_segundos'])
+        lam_g, lam_m, lam_s = float(data['lambda_grados']), float(data['lambda_minutos']), float(data['lambda_segundos'])
         h = float(data['h'])
         
-        X, Y, Z = phi_lambda_h_to_xyz(phi_decimal, lambda_decimal, h)
+        validar_latitud(phi_g, phi_m, phi_s)
+        validar_longitud(lam_g, lam_m, lam_s)
+        
+        phi = dms_to_decimal(phi_g, phi_m, phi_s)
+        lam = dms_to_decimal(lam_g, lam_m, lam_s)
+        X, Y, Z = phi_lambda_to_xyz(phi, lam, h)
         
         return jsonify({'success': True, 'X': X, 'Y': Y, 'Z': Z})
-    
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
 @app.route('/api/apartado4', methods=['POST'])
 def api_apartado4():
     try:
-        data = request.json
-        X = float(data['X'])
-        Y = float(data['Y'])
-        Z = float(data['Z'])
-        
-        phi_deg, lambda_deg, h = xyz_to_phi_lambda_h(X, Y, Z)
-        
-        phi_dms = decimal_to_dms(phi_deg)
-        lambda_dms = decimal_to_dms(lambda_deg)
+        X, Y, Z = float(request.json['X']), float(request.json['Y']), float(request.json['Z'])
+        phi, lam, h = xyz_to_phi_lambda_h(X, Y, Z)
         
         return jsonify({
             'success': True,
-            'phi': {'decimal': phi_deg, 'dms': phi_dms},
-            'lambda': {'decimal': lambda_deg, 'dms': lambda_dms},
-            'h': h
+            'phi': {'decimal': phi, 'dms': decimal_to_dms(phi)},
+            'lambda': {'decimal': lam, 'dms': decimal_to_dms(lam)},
+            'h': h,
+            'coords': {'X': X, 'Y': Y, 'Z': Z}
         })
-    
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -407,30 +233,20 @@ def api_apartado4():
 def api_apartado5():
     try:
         data = request.json
+        phi1_g, phi1_m, phi1_s = float(data['phi1_grados']), float(data['phi1_minutos']), float(data['phi1_segundos'])
+        phi2_g, phi2_m, phi2_s = float(data['phi2_grados']), float(data['phi2_minutos']), float(data['phi2_segundos'])
+        lam_g, lam_m, lam_s = float(data['lambda_grados']), float(data['lambda_minutos']), float(data['lambda_segundos'])
         
-        phi1_g = float(data['phi1_grados'])
-        phi1_m = float(data['phi1_minutos'])
-        phi1_s = float(data['phi1_segundos'])
-        phi1_decimal = dms_to_decimal(phi1_g, phi1_m, phi1_s)
+        validar_latitud(phi1_g, phi1_m, phi1_s)
+        validar_latitud(phi2_g, phi2_m, phi2_s)
+        validar_longitud(lam_g, lam_m, lam_s)
         
-        phi2_g = float(data['phi2_grados'])
-        phi2_m = float(data['phi2_minutos'])
-        phi2_s = float(data['phi2_segundos'])
-        phi2_decimal = dms_to_decimal(phi2_g, phi2_m, phi2_s)
+        phi1 = dms_to_decimal(phi1_g, phi1_m, phi1_s)
+        phi2 = dms_to_decimal(phi2_g, phi2_m, phi2_s)
+        lam = dms_to_decimal(lam_g, lam_m, lam_s)
         
-        lambda_g = float(data['lambda_grados'])
-        lambda_m = float(data['lambda_minutos'])
-        lambda_s = float(data['lambda_segundos'])
-        lambda_decimal = dms_to_decimal(lambda_g, lambda_m, lambda_s)
-        
-        longitud, puntos = longitud_arco_meridiano(phi1_decimal, phi2_decimal, lambda_decimal)
-        
-        return jsonify({
-            'success': True,
-            'longitud': longitud,
-            'puntos': puntos
-        })
-    
+        long, puntos = arco_meridiano(phi1, phi2, lam)
+        return jsonify({'success': True, 'longitud': long, 'puntos': puntos})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -438,30 +254,20 @@ def api_apartado5():
 def api_apartado6():
     try:
         data = request.json
+        phi_g, phi_m, phi_s = float(data['phi_grados']), float(data['phi_minutos']), float(data['phi_segundos'])
+        lam1_g, lam1_m, lam1_s = float(data['lambda1_grados']), float(data['lambda1_minutos']), float(data['lambda1_segundos'])
+        lam2_g, lam2_m, lam2_s = float(data['lambda2_grados']), float(data['lambda2_minutos']), float(data['lambda2_segundos'])
         
-        phi_g = float(data['phi_grados'])
-        phi_m = float(data['phi_minutos'])
-        phi_s = float(data['phi_segundos'])
-        phi_decimal = dms_to_decimal(phi_g, phi_m, phi_s)
+        validar_latitud(phi_g, phi_m, phi_s)
+        validar_longitud(lam1_g, lam1_m, lam1_s)
+        validar_longitud(lam2_g, lam2_m, lam2_s)
         
-        lambda1_g = float(data['lambda1_grados'])
-        lambda1_m = float(data['lambda1_minutos'])
-        lambda1_s = float(data['lambda1_segundos'])
-        lambda1_decimal = dms_to_decimal(lambda1_g, lambda1_m, lambda1_s)
+        phi = dms_to_decimal(phi_g, phi_m, phi_s)
+        lam1 = dms_to_decimal(lam1_g, lam1_m, lam1_s)
+        lam2 = dms_to_decimal(lam2_g, lam2_m, lam2_s)
         
-        lambda2_g = float(data['lambda2_grados'])
-        lambda2_m = float(data['lambda2_minutos'])
-        lambda2_s = float(data['lambda2_segundos'])
-        lambda2_decimal = dms_to_decimal(lambda2_g, lambda2_m, lambda2_s)
-        
-        longitud, puntos = longitud_arco_paralelo(phi_decimal, lambda1_decimal, lambda2_decimal)
-        
-        return jsonify({
-            'success': True,
-            'longitud': longitud,
-            'puntos': puntos
-        })
-    
+        long, puntos = arco_paralelo(phi, lam1, lam2)
+        return jsonify({'success': True, 'longitud': long, 'puntos': puntos})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -469,10 +275,23 @@ def api_apartado6():
 def api_apartado7():
     try:
         data = request.json
-        resultados = calcular_nivelacion(data)
+        cota = data['cota_inicial']
+        resultados = []
+        
+        for i, p in enumerate(data['puntos']):
+            desnivel = p.get('v_mas', 0) - p.get('v_menos', 0)
+            cota += desnivel
+            resultados.append({
+                'estacion': i + 1,
+                'v_mas': p.get('v_mas', 0),
+                'v_menos': p.get('v_menos', 0),
+                'v_intermedia': p.get('v_intermedia', None),
+                'desnivel': desnivel,
+                'cota': cota,
+                'distancia': p.get('distancia', 0)
+            })
         
         return jsonify({'success': True, 'resultados': resultados})
-    
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -480,36 +299,31 @@ def api_apartado7():
 def api_apartado8():
     try:
         data = request.json
-        
-        phi_g = float(data['phi_grados'])
-        phi_m = float(data['phi_minutos'])
-        phi_s = float(data['phi_segundos'])
-        phi_decimal = dms_to_decimal(phi_g, phi_m, phi_s)
-        
-        lambda_g = float(data['lambda_grados'])
-        lambda_m = float(data['lambda_minutos'])
-        lambda_s = float(data['lambda_segundos'])
-        lambda_decimal = dms_to_decimal(lambda_g, lambda_m, lambda_s)
-        
+        phi_g, phi_m, phi_s = float(data['phi_grados']), float(data['phi_minutos']), float(data['phi_segundos'])
+        lam_g, lam_m, lam_s = float(data['lambda_grados']), float(data['lambda_minutos']), float(data['lambda_segundos'])
         h = float(data['h'])
         
-        phi_wgs84, lambda_wgs84, h_wgs84 = transformar_datum_bogota_a_wgs84(phi_decimal, lambda_decimal, h)
-        phi_grs80, lambda_grs80, h_grs80 = transformar_datum_bogota_a_grs80(phi_decimal, lambda_decimal, h)
+        validar_latitud(phi_g, phi_m, phi_s)
+        validar_longitud(lam_g, lam_m, lam_s)
+        
+        phi = dms_to_decimal(phi_g, phi_m, phi_s)
+        lam = dms_to_decimal(lam_g, lam_m, lam_s)
+        
+        phi_wgs, lam_wgs, h_wgs = transform_bogota_wgs84(phi, lam, h)
         
         return jsonify({
             'success': True,
             'wgs84': {
-                'phi': {'decimal': phi_wgs84, 'dms': decimal_to_dms(phi_wgs84)},
-                'lambda': {'decimal': lambda_wgs84, 'dms': decimal_to_dms(lambda_wgs84)},
-                'h': h_wgs84
+                'phi': {'decimal': phi_wgs, 'dms': decimal_to_dms(phi_wgs)},
+                'lambda': {'decimal': lam_wgs, 'dms': decimal_to_dms(lam_wgs)},
+                'h': h_wgs
             },
             'grs80': {
-                'phi': {'decimal': phi_grs80, 'dms': decimal_to_dms(phi_grs80)},
-                'lambda': {'decimal': lambda_grs80, 'dms': decimal_to_dms(lambda_grs80)},
-                'h': h_grs80
+                'phi': {'decimal': phi_wgs, 'dms': decimal_to_dms(phi_wgs)},
+                'lambda': {'decimal': lam_wgs, 'dms': decimal_to_dms(lam_wgs)},
+                'h': h_wgs
             }
         })
-    
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 

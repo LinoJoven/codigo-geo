@@ -5,126 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apartado 4 - Problema Inverso</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
         .btn-back {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background: white;
-            color: #8e44ad;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: transform 0.2s;
-            z-index: 100;
+            position: fixed; top: 20px; left: 20px; padding: 10px 20px;
+            background: white; color: #8e44ad; text-decoration: none;
+            border-radius: 5px; font-weight: bold; z-index: 100;
         }
-        .btn-back:hover { transform: scale(1.05); }
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
         }
-        .panel {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        .panel { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-        }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
         button {
-            width: 100%;
-            padding: 15px;
+            width: 100%; padding: 15px;
             background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
+            color: white; border: none; border-radius: 5px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
         }
-        button:hover { transform: scale(1.02); }
-        .resultados {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
+        .resultados { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
         .resultado-item {
-            margin-bottom: 15px;
-            padding: 15px;
-            background: white;
-            border-left: 4px solid #8e44ad;
-            border-radius: 5px;
+            margin-bottom: 15px; padding: 15px;
+            background: white; border-left: 4px solid #8e44ad; border-radius: 5px;
         }
-        .resultado-item h3 {
-            color: #8e44ad;
-            margin-bottom: 10px;
-        }
-        #canvas-container {
-            width: 100%;
-            height: 600px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #0a0a0a;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        small {
-            display: block;
-            margin-top: 5px;
-            color: #666;
-        }
-        .ejemplo {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        .ejemplo h4 {
-            color: #1976d2;
-            margin-bottom: 8px;
-        }
-        @media (max-width: 1024px) {
-            .container { grid-template-columns: 1fr; }
-        }
+        #canvas-container { width: 100%; height: 600px; border-radius: 10px; overflow: hidden; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .controls-info { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        small { display: block; margin-top: 5px; color: #666; font-size: 0.85em; }
+        .ejemplo { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 10px; }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -137,133 +57,120 @@
 
     <div class="container">
         <div class="panel">
-            <h2>Coordenadas Cartesianas de Entrada</h2>
+            <h2>Coordenadas Cartesianas</h2>
             
             <div class="form-group">
                 <label>X (metros):</label>
-                <input type="number" id="X" placeholder="Ej: 1563037.480" step="any">
-                <small>Coordenada X geocéntrica en metros</small>
+                <input type="number" id="X" placeholder="Ej: 1563037.480" step="0.001">
+                <small>Coordenada X geocéntrica</small>
             </div>
 
             <div class="form-group">
                 <label>Y (metros):</label>
-                <input type="number" id="Y" placeholder="Ej: -6247808.280" step="any">
-                <small>Coordenada Y geocéntrica en metros</small>
+                <input type="number" id="Y" placeholder="Ej: -6247808.280" step="0.001">
+                <small>Coordenada Y geocéntrica</small>
             </div>
 
             <div class="form-group">
                 <label>Z (metros):</label>
-                <input type="number" id="Z" placeholder="Ej: 467598.060" step="any">
-                <small>Coordenada Z geocéntrica en metros</small>
+                <input type="number" id="Z" placeholder="Ej: 467598.060" step="0.001">
+                <small>Coordenada Z geocéntrica</small>
             </div>
 
             <div class="ejemplo">
-                <h4>💡 Ejemplo - Bogotá, Colombia:</h4>
+                <h4>💡 Ejemplo - Bogotá:</h4>
                 <p><strong>X:</strong> 1,563,037.480 m</p>
                 <p><strong>Y:</strong> -6,247,808.280 m</p>
                 <p><strong>Z:</strong> 467,598.060 m</p>
-                <p style="margin-top: 8px; font-size: 0.9em;">Resultado esperado: φ ≈ 4.6°N, λ ≈ -76°W, h ≈ 2640m</p>
             </div>
 
             <button onclick="calcular()">Calcular Coordenadas Geodésicas</button>
-
             <div id="resultados"></div>
         </div>
 
         <div class="panel">
-            <h2>Visualización 3D del Punto</h2>
-            <div id="canvas-container"></div>
-            <div style="margin-top: 15px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
-                <p style="margin-bottom: 10px;"><strong>📍 Punto Rojo:</strong> Posición del punto ingresado</p>
-                <p style="margin-bottom: 10px;"><strong>🔵 Elipsoide:</strong> Superficie de referencia WGS84</p>
-                <p><strong>Línea Amarilla:</strong> Vector desde el centro de la Tierra</p>
+            <h2>Visualización 3D</h2>
+            <div class="controls-info">
+                <h4>🎮 Controles</h4>
+                <p><strong>Izquierdo:</strong> Rotar | <strong>Rueda:</strong> Zoom | <strong>Derecho:</strong> Mover</p>
             </div>
+            <div id="canvas-container"></div>
         </div>
     </div>
 
     <script>
-        let scene, camera, renderer, ellipsoid, point;
+        let scene, camera, renderer, controls;
         
-        function initThree() {
+        function init3D() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0a0a);
-            
-            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 20000000);
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 50000000);
             camera.position.set(15000000, 10000000, 15000000);
             
-            renderer = new THREE.WebGLRenderer({ antialias: true });
             const container = document.getElementById('canvas-container');
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
             
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 10000000;
+            controls.maxDistance = 30000000;
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10000000, 10000000, 10000000);
-            scene.add(directionalLight);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(10000000, 10000000, 10000000);
+            scene.add(light);
             
-            const a = 6378137;
-            const b = 6356752.314245;
-            const geometry = new THREE.SphereGeometry(a, 64, 64);
-            geometry.scale(1, 1, b/a);
+            const geo = new THREE.SphereGeometry(6378137, 64, 64);
+            geo.scale(1, 1, 6356752/6378137);
+            scene.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ 
+                color: 0x3498db, transparent: true, opacity: 0.6 
+            })));
             
-            const material = new THREE.MeshPhongMaterial({
-                color: 0x3498db,
-                transparent: true,
-                opacity: 0.7
-            });
-            
-            ellipsoid = new THREE.Mesh(geometry, material);
-            scene.add(ellipsoid);
-            
-            const wireframeGeometry = new THREE.SphereGeometry(a * 1.01, 32, 32);
-            wireframeGeometry.scale(1, 1, b/a);
-            const wireframeMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.2
-            });
-            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
-            scene.add(wireframe);
-            
-            const axesHelper = new THREE.AxesHelper(8000000);
-            scene.add(axesHelper);
+            const wireGeo = new THREE.SphereGeometry(6378137*1.005, 24, 24);
+            wireGeo.scale(1, 1, 6356752/6378137);
+            scene.add(new THREE.LineSegments(
+                new THREE.EdgesGeometry(wireGeo),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })
+            ));
+            scene.add(new THREE.AxesHelper(10000000));
             
             animate();
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
         }
         
         function animate() {
             requestAnimationFrame(animate);
-            ellipsoid.rotation.y += 0.001;
+            controls.update();
             renderer.render(scene, camera);
         }
         
         function addPoint(x, y, z) {
-            if (point) {
-                scene.children.forEach(child => {
-                    if (child.type === 'Mesh' && child !== ellipsoid) {
-                        scene.remove(child);
-                    }
-                    if (child.type === 'Line') {
-                        scene.remove(child);
-                    }
-                });
-            }
+            scene.children = scene.children.filter(c => 
+                !(c.type === 'Mesh' && c.geometry.type === 'SphereGeometry' && c.geometry.parameters.radius < 500000) &&
+                c.type !== 'Line'
+            );
             
-            const geometry = new THREE.SphereGeometry(300000, 32, 32);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff4444 });
-            point = new THREE.Mesh(geometry, material);
-            point.position.set(x, z, y);
-            scene.add(point);
+            const p = new THREE.Mesh(
+                new THREE.SphereGeometry(300000, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0xff4444 })
+            );
+            p.position.set(x, z, y);
+            scene.add(p);
             
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(0, 0, 0),
-                new THREE.Vector3(x, z, y)
-            ]);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 3 });
-            const line = new THREE.Line(lineGeometry, lineMaterial);
+            const line = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(x, z, y)
+                ]),
+                new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 3 })
+            );
             scene.add(line);
         }
         
@@ -273,87 +180,59 @@
             const Z = parseFloat(document.getElementById('Z').value);
             
             if (isNaN(X) || isNaN(Y) || isNaN(Z)) {
-                alert('Por favor complete todas las coordenadas cartesianas');
+                alert('Complete todas las coordenadas');
                 return;
             }
             
-            const distancia = Math.sqrt(X*X + Y*Y + Z*Z);
-            if (distancia < 6000000 || distancia > 7000000) {
-                if (!confirm('Las coordenadas parecen estar fuera del rango típico de la Tierra (6,000-7,000 km desde el centro). ¿Desea continuar?')) {
-                    return;
-                }
+            const dist = Math.sqrt(X*X + Y*Y + Z*Z);
+            if (dist < 6306752 || dist > 6428137) {
+                alert(`Coordenadas fuera del rango terrestre.\nDistancia: ${(dist/1000).toFixed(2)} km\nRango válido: 6,306-6,428 km`);
+                return;
             }
             
             try {
-                const response = await fetch('/api/apartado4', {
+                const res = await fetch('/api/apartado4', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ X, Y, Z })
                 });
-                
-                const data = await response.json();
+                const data = await res.json();
                 
                 if (data.success) {
                     const phi_dms = data.phi.dms;
-                    const lambda_dms = data.lambda.dms;
-                    
+                    const lam_dms = data.lambda.dms;
                     const phi_sign = phi_dms[0] >= 0 ? 'N' : 'S';
-                    const lambda_sign = lambda_dms[0] >= 0 ? 'E' : 'W';
+                    const lam_sign = lam_dms[0] >= 0 ? 'E' : 'W';
                     
                     document.getElementById('resultados').innerHTML = `
                         <div class="resultados">
-                            <h3>Coordenadas Geodésicas (WGS84)</h3>
-                            
+                            <h3>Coordenadas Geodésicas</h3>
                             <div class="resultado-item">
-                                <h3>φ (Latitud Geodésica)</h3>
+                                <h4>φ (Latitud)</h4>
                                 <p><strong>Decimal:</strong> ${data.phi.decimal.toFixed(10)}°</p>
                                 <p><strong>DMS:</strong> ${Math.abs(phi_dms[0])}° ${phi_dms[1]}' ${phi_dms[2].toFixed(4)}" ${phi_sign}</p>
                             </div>
-                            
                             <div class="resultado-item">
-                                <h3>λ (Longitud)</h3>
+                                <h4>λ (Longitud)</h4>
                                 <p><strong>Decimal:</strong> ${data.lambda.decimal.toFixed(10)}°</p>
-                                <p><strong>DMS:</strong> ${Math.abs(lambda_dms[0])}° ${lambda_dms[1]}' ${lambda_dms[2].toFixed(4)}" ${lambda_sign}</p>
+                                <p><strong>DMS:</strong> ${Math.abs(lam_dms[0])}° ${lam_dms[1]}' ${lam_dms[2].toFixed(4)}" ${lam_sign}</p>
                             </div>
-                            
                             <div class="resultado-item">
-                                <h3>h (Altura Elipsoidal)</h3>
+                                <h4>h (Altura)</h4>
                                 <p><strong>Altura:</strong> ${data.h.toFixed(3)} m</p>
-                                <p style="font-size: 0.9em; color: #666; margin-top: 8px;">
-                                    ${data.h > 0 ? 'Sobre el elipsoide' : 'Bajo el elipsoide'}
-                                </p>
-                            </div>
-                            
-                            <div class="resultado-item">
-                                <h3>📏 Información Adicional</h3>
-                                <p><strong>Distancia al centro:</strong> ${distancia.toFixed(3)} m</p>
-                                <p><strong>Radio ecuatorial:</strong> 6,378,137 m</p>
-                                <p><strong>Radio polar:</strong> 6,356,752 m</p>
                             </div>
                         </div>
                     `;
-                    
                     addPoint(X, Y, Z);
                 } else {
-                    document.getElementById('resultados').innerHTML = `
-                        <div class="error">Error: ${data.error}</div>
-                    `;
+                    document.getElementById('resultados').innerHTML = `<div class="error">${data.error}</div>`;
                 }
-            } catch (error) {
-                document.getElementById('resultados').innerHTML = `
-                    <div class="error">Error de conexión: ${error.message}</div>
-                `;
+            } catch (e) {
+                document.getElementById('resultados').innerHTML = `<div class="error">${e.message}</div>`;
             }
         }
         
-        window.addEventListener('resize', () => {
-            const container = document.getElementById('canvas-container');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        });
-        
-        initThree();
+        init3D();
     </script>
 </body>
 </html>

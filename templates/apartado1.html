@@ -6,30 +6,22 @@
     <title>Apartado 1 - Transformación de Latitudes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
         .header {
             text-align: center;
             color: white;
             margin-bottom: 30px;
         }
-
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
         }
-
         .btn-back {
             position: fixed;
             top: 20px;
@@ -41,12 +33,9 @@
             border-radius: 5px;
             font-weight: bold;
             transition: transform 0.2s;
+            z-index: 100;
         }
-
-        .btn-back:hover {
-            transform: scale(1.05);
-        }
-
+        .btn-back:hover { transform: scale(1.05); }
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -54,25 +43,19 @@
             grid-template-columns: 1fr 1fr;
             gap: 30px;
         }
-
         .panel {
             background: white;
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
+        .form-group { margin-bottom: 20px; }
         label {
             display: block;
             font-weight: bold;
             margin-bottom: 5px;
             color: #333;
         }
-
         select, input {
             width: 100%;
             padding: 10px;
@@ -80,18 +63,15 @@
             border-radius: 5px;
             font-size: 1em;
         }
-
         .coords-input {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
             margin-bottom: 10px;
         }
-
         .coords-input input {
             width: 100%;
         }
-
         button {
             width: 100%;
             padding: 15px;
@@ -104,18 +84,13 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-
-        button:hover {
-            transform: scale(1.02);
-        }
-
+        button:hover { transform: scale(1.02); }
         .resultados {
             margin-top: 30px;
             padding: 20px;
             background: #f8f9fa;
             border-radius: 10px;
         }
-
         .resultado-item {
             margin-bottom: 15px;
             padding: 15px;
@@ -123,19 +98,17 @@
             border-left: 4px solid #667eea;
             border-radius: 5px;
         }
-
         .resultado-item h3 {
             color: #667eea;
             margin-bottom: 10px;
         }
-
         #canvas-container {
             width: 100%;
             height: 600px;
             border-radius: 10px;
             overflow: hidden;
+            position: relative;
         }
-
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -143,11 +116,18 @@
             border-radius: 5px;
             margin-top: 20px;
         }
-
+        .controls-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .controls-info h4 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
         @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
+            .container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -182,11 +162,11 @@
                     </div>
                     <div>
                         <input type="number" id="minutos" placeholder="Minutos" step="any" min="0" max="59">
-                        <small>Minutos</small>
+                        <small>Minutos (0-59)</small>
                     </div>
                     <div>
                         <input type="number" id="segundos" placeholder="Segundos" step="any" min="0" max="59.999">
-                        <small>Segundos</small>
+                        <small>Segundos (0-59.999)</small>
                     </div>
                 </div>
             </div>
@@ -198,26 +178,156 @@
 
         <div class="panel">
             <h2>Visualización 3D del Elipsoide</h2>
+            <div class="controls-info">
+                <h4>🎮 Controles Interactivos</h4>
+                <p><strong>Click izquierdo + arrastrar:</strong> Rotar cámara</p>
+                <p><strong>Rueda del mouse:</strong> Zoom in/out</p>
+                <p><strong>Click derecho + arrastrar:</strong> Mover vista</p>
+            </div>
             <div id="canvas-container"></div>
         </div>
     </div>
 
     <script>
-        let scene, camera, renderer, ellipsoid, point;
+        let scene, camera, renderer, controls, ellipsoid, point, meridianLine;
+        
+        class OrbitControls {
+            constructor(camera, domElement) {
+                this.camera = camera;
+                this.domElement = domElement;
+                this.target = new THREE.Vector3();
+                this.minDistance = 10000000;
+                this.maxDistance = 30000000;
+                
+                this.rotateSpeed = 1.0;
+                this.zoomSpeed = 1.2;
+                this.panSpeed = 0.3;
+                
+                this.spherical = { radius: 25000000, theta: Math.PI / 4, phi: Math.PI / 3 };
+                this.sphericalDelta = { theta: 0, phi: 0 };
+                this.scale = 1;
+                this.panOffset = new THREE.Vector3();
+                
+                this.isRotating = false;
+                this.isPanning = false;
+                this.rotateStart = new THREE.Vector2();
+                this.rotateEnd = new THREE.Vector2();
+                this.rotateDelta = new THREE.Vector2();
+                this.panStart = new THREE.Vector2();
+                this.panEnd = new THREE.Vector2();
+                this.panDelta = new THREE.Vector2();
+                
+                this.domElement.addEventListener('mousedown', (e) => this.onMouseDown(e));
+                this.domElement.addEventListener('wheel', (e) => this.onMouseWheel(e));
+                this.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+            }
+            
+            onMouseDown(event) {
+                event.preventDefault();
+                if (event.button === 0) {
+                    this.isRotating = true;
+                    this.rotateStart.set(event.clientX, event.clientY);
+                } else if (event.button === 2) {
+                    this.isPanning = true;
+                    this.panStart.set(event.clientX, event.clientY);
+                }
+                
+                document.addEventListener('mousemove', (e) => this.onMouseMove(e));
+                document.addEventListener('mouseup', (e) => this.onMouseUp(e));
+            }
+            
+            onMouseMove(event) {
+                if (this.isRotating) {
+                    this.rotateEnd.set(event.clientX, event.clientY);
+                    this.rotateDelta.subVectors(this.rotateEnd, this.rotateStart).multiplyScalar(this.rotateSpeed);
+                    
+                    this.sphericalDelta.theta -= 2 * Math.PI * this.rotateDelta.x / this.domElement.clientHeight;
+                    this.sphericalDelta.phi -= 2 * Math.PI * this.rotateDelta.y / this.domElement.clientHeight;
+                    
+                    this.rotateStart.copy(this.rotateEnd);
+                    this.update();
+                } else if (this.isPanning) {
+                    this.panEnd.set(event.clientX, event.clientY);
+                    this.panDelta.subVectors(this.panEnd, this.panStart).multiplyScalar(this.panSpeed);
+                    this.pan(this.panDelta.x, this.panDelta.y);
+                    this.panStart.copy(this.panEnd);
+                    this.update();
+                }
+            }
+            
+            onMouseUp(event) {
+                this.isRotating = false;
+                this.isPanning = false;
+                document.removeEventListener('mousemove', (e) => this.onMouseMove(e));
+                document.removeEventListener('mouseup', (e) => this.onMouseUp(e));
+            }
+            
+            onMouseWheel(event) {
+                event.preventDefault();
+                if (event.deltaY < 0) {
+                    this.scale /= this.zoomSpeed;
+                } else if (event.deltaY > 0) {
+                    this.scale *= this.zoomSpeed;
+                }
+                this.update();
+            }
+            
+            pan(deltaX, deltaY) {
+                const offset = new THREE.Vector3();
+                const panLeft = new THREE.Vector3();
+                const panUp = new THREE.Vector3();
+                
+                const v = new THREE.Vector3();
+                v.copy(this.camera.position).sub(this.target);
+                const targetDistance = v.length();
+                
+                targetDistance *= Math.tan((this.camera.fov / 2) * Math.PI / 180.0);
+                
+                panLeft.setFromMatrixColumn(this.camera.matrix, 0);
+                panLeft.multiplyScalar(-2 * deltaX * targetDistance / this.domElement.clientHeight);
+                
+                panUp.setFromMatrixColumn(this.camera.matrix, 1);
+                panUp.multiplyScalar(2 * deltaY * targetDistance / this.domElement.clientHeight);
+                
+                offset.copy(panLeft).add(panUp);
+                this.panOffset.add(offset);
+            }
+            
+            update() {
+                this.spherical.theta += this.sphericalDelta.theta;
+                this.spherical.phi += this.sphericalDelta.phi;
+                this.spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, this.spherical.phi));
+                this.spherical.radius *= this.scale;
+                this.spherical.radius = Math.max(this.minDistance, Math.min(this.maxDistance, this.spherical.radius));
+                
+                const position = new THREE.Vector3();
+                position.setFromSphericalCoords(this.spherical.radius, this.spherical.phi, this.spherical.theta);
+                position.add(this.target).add(this.panOffset);
+                
+                this.camera.position.copy(position);
+                this.camera.lookAt(this.target.clone().add(this.panOffset));
+                
+                this.sphericalDelta.theta = 0;
+                this.sphericalDelta.phi = 0;
+                this.scale = 1;
+            }
+        }
         
         function initThree() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1a1a2e);
+            scene.background = new THREE.Color(0x0a0a0a);
             
-            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 20000000);
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 50000000);
             camera.position.set(15000000, 10000000, 15000000);
+            camera.lookAt(0, 0, 0);
             
             renderer = new THREE.WebGLRenderer({ antialias: true });
             const container = document.getElementById('canvas-container');
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
             
-            // Luces
+            controls = new OrbitControls(camera, renderer.domElement);
+            
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
             
@@ -225,7 +335,6 @@
             directionalLight.position.set(10000000, 10000000, 10000000);
             scene.add(directionalLight);
             
-            // Elipsoide WGS84
             const a = 6378137;
             const b = 6356752.314245;
             const geometry = new THREE.SphereGeometry(a, 64, 64);
@@ -234,55 +343,115 @@
             const material = new THREE.MeshPhongMaterial({
                 color: 0x4287f5,
                 transparent: true,
-                opacity: 0.7,
-                wireframe: false
+                opacity: 0.6,
+                side: THREE.DoubleSide
             });
             
             ellipsoid = new THREE.Mesh(geometry, material);
             scene.add(ellipsoid);
             
-            // Wireframe del elipsoide
-            const wireframeGeometry = new THREE.SphereGeometry(a * 1.01, 32, 32);
+            const wireframeGeometry = new THREE.SphereGeometry(a * 1.005, 32, 32);
             wireframeGeometry.scale(1, 1, b/a);
-            const wireframeMaterial = new THREE.MeshBasicMaterial({
+            const wireframeMaterial = new THREE.LineBasicMaterial({
                 color: 0xffffff,
-                wireframe: true,
                 transparent: true,
-                opacity: 0.2
+                opacity: 0.15
             });
-            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+            const wireframe = new THREE.LineSegments(
+                new THREE.EdgesGeometry(wireframeGeometry),
+                wireframeMaterial
+            );
             scene.add(wireframe);
             
-            // Ejes
-            const axesHelper = new THREE.AxesHelper(8000000);
+            const axesHelper = new THREE.AxesHelper(10000000);
             scene.add(axesHelper);
+            
+            drawMeridians(a, b);
+            drawEquator(a, b);
             
             animate();
         }
         
+        function drawMeridians(a, b) {
+            for (let lon = 0; lon < 360; lon += 30) {
+                const points = [];
+                for (let lat = -90; lat <= 90; lat += 5) {
+                    const phi = lat * Math.PI / 180;
+                    const lambda = lon * Math.PI / 180;
+                    const N = a / Math.sqrt(1 - 0.00669438002290 * Math.sin(phi) ** 2);
+                    const x = N * Math.cos(phi) * Math.cos(lambda);
+                    const y = N * Math.cos(phi) * Math.sin(lambda);
+                    const z = N * (1 - 0.00669438002290) * Math.sin(phi);
+                    points.push(new THREE.Vector3(x, z, y));
+                }
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const material = new THREE.LineBasicMaterial({ color: 0x444444, transparent: true, opacity: 0.3 });
+                const line = new THREE.Line(geometry, material);
+                scene.add(line);
+            }
+        }
+        
+        function drawEquator(a, b) {
+            const points = [];
+            for (let lon = 0; lon <= 360; lon += 5) {
+                const lambda = lon * Math.PI / 180;
+                const x = a * Math.cos(lambda);
+                const y = a * Math.sin(lambda);
+                const z = 0;
+                points.push(new THREE.Vector3(x, z, y));
+            }
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+        }
+        
         function animate() {
             requestAnimationFrame(animate);
-            ellipsoid.rotation.y += 0.001;
             renderer.render(scene, camera);
         }
         
-        function addPoint(x, y, z, color = 0xff0000) {
+        function addPoint(x, y, z) {
             if (point) scene.remove(point);
+            if (meridianLine) scene.remove(meridianLine);
             
-            const geometry = new THREE.SphereGeometry(300000, 32, 32);
-            const material = new THREE.MeshBasicMaterial({ color: color });
+            const geometry = new THREE.SphereGeometry(200000, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             point = new THREE.Mesh(geometry, material);
             point.position.set(x, z, y);
             scene.add(point);
             
-            // Línea desde el origen
             const lineGeometry = new THREE.BufferGeometry().setFromPoints([
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(x, z, y)
             ]);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: color });
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            scene.add(line);
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
+            meridianLine = new THREE.Line(lineGeometry, lineMaterial);
+            scene.add(meridianLine);
+            
+            createTextSprite('Punto φ', x, z + 500000, y);
+        }
+        
+        function createTextSprite(message, x, y, z) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 128;
+            
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.font = 'Bold 40px Arial';
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.fillText(message, 128, 70);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(1000000, 500000, 1);
+            sprite.position.set(x, y, z);
+            scene.add(sprite);
         }
         
         async function calcular() {
@@ -301,8 +470,20 @@
                 return;
             }
             
-            if (grados < -90 || grados > 90) {
-                alert('Los grados deben estar entre -90 y 90');
+            // Validaciones geodésicas estrictas
+            if (minutos < 0 || minutos >= 60) {
+                alert('Los minutos deben estar entre 0 y 59');
+                return;
+            }
+            
+            if (segundos < 0 || segundos >= 60) {
+                alert('Los segundos deben estar entre 0 y 59.999');
+                return;
+            }
+            
+            const decimal = grados + minutos/60 + segundos/3600;
+            if (decimal < -90 || decimal > 90) {
+                alert('La latitud debe estar entre -90° y 90°');
                 return;
             }
             
@@ -324,18 +505,7 @@
                 
                 if (data.success) {
                     mostrarResultados(data.resultados);
-                    
-                    // Calcular coordenadas cartesianas para visualización
-                    const phi_rad = data.resultados.phi.decimal * Math.PI / 180;
-                    const a = 6378137;
-                    const e2 = 0.00669438002290;
-                    const N = a / Math.sqrt(1 - e2 * Math.sin(phi_rad) ** 2);
-                    
-                    const X = N * Math.cos(phi_rad);
-                    const Y = 0;
-                    const Z = N * (1 - e2) * Math.sin(phi_rad);
-                    
-                    addPoint(X, Y, Z);
+                    addPoint(data.resultados.coords.X, data.resultados.coords.Y, data.resultados.coords.Z);
                 } else {
                     document.getElementById('resultados').innerHTML = `
                         <div class="error">Error: ${data.error}</div>

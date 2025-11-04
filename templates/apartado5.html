@@ -103,7 +103,6 @@
             height: 600px;
             border-radius: 10px;
             overflow: hidden;
-            background: #0a0a0a;
         }
         .error {
             background: #f8d7da;
@@ -126,6 +125,16 @@
         }
         .info-box h4 {
             color: #856404;
+            margin-bottom: 8px;
+        }
+        .controls-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .controls-info h4 {
+            color: #1976d2;
             margin-bottom: 8px;
         }
         @media (max-width: 1024px) {
@@ -211,6 +220,12 @@
 
         <div class="panel">
             <h2>Visualización 3D del Arco</h2>
+            <div class="controls-info">
+                <h4>🎮 Controles Interactivos</h4>
+                <p><strong>Click izquierdo + arrastrar:</strong> Rotar</p>
+                <p><strong>Rueda del mouse:</strong> Zoom</p>
+                <p><strong>Click derecho + arrastrar:</strong> Mover</p>
+            </div>
             <div id="canvas-container"></div>
             <div style="margin-top: 15px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
                 <p style="margin-bottom: 10px;"><strong>🔴 Línea Roja:</strong> Arco de meridiano calculado</p>
@@ -220,20 +235,27 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script>
-        let scene, camera, renderer, ellipsoid, arcLine;
+        let scene, camera, renderer, controls, ellipsoid, arcLine;
         
         function initThree() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0a0a);
             
-            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 20000000);
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 50000000);
             camera.position.set(15000000, 10000000, 15000000);
             
             renderer = new THREE.WebGLRenderer({ antialias: true });
             const container = document.getElementById('canvas-container');
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
+            
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 10000000;
+            controls.maxDistance = 30000000;
             
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
@@ -250,24 +272,27 @@
             const material = new THREE.MeshPhongMaterial({
                 color: 0xd53369,
                 transparent: true,
-                opacity: 0.6
+                opacity: 0.5,
+                side: THREE.DoubleSide
             });
             
             ellipsoid = new THREE.Mesh(geometry, material);
             scene.add(ellipsoid);
             
-            const wireframeGeometry = new THREE.SphereGeometry(a * 1.01, 32, 32);
+            const wireframeGeometry = new THREE.SphereGeometry(a * 1.005, 24, 24);
             wireframeGeometry.scale(1, 1, b/a);
-            const wireframeMaterial = new THREE.MeshBasicMaterial({
+            const wireframeMaterial = new THREE.LineBasicMaterial({
                 color: 0xffffff,
-                wireframe: true,
                 transparent: true,
-                opacity: 0.2
+                opacity: 0.15
             });
-            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
+            const wireframe = new THREE.LineSegments(
+                new THREE.EdgesGeometry(wireframeGeometry),
+                wireframeMaterial
+            );
             scene.add(wireframe);
             
-            const axesHelper = new THREE.AxesHelper(8000000);
+            const axesHelper = new THREE.AxesHelper(10000000);
             scene.add(axesHelper);
             
             animate();
@@ -275,16 +300,18 @@
         
         function animate() {
             requestAnimationFrame(animate);
-            ellipsoid.rotation.y += 0.001;
+            controls.update();
             renderer.render(scene, camera);
         }
         
         function drawArc(puntos) {
             // Limpiar arcos anteriores
-            scene.children.forEach(child => {
-                if (child.type === 'Line' || (child.type === 'Mesh' && child !== ellipsoid && child.geometry.type === 'SphereGeometry' && child.geometry.parameters.radius < 500000)) {
-                    scene.remove(child);
-                }
+            scene.children.filter(child => 
+                child.type === 'Line' || 
+                (child.type === 'Mesh' && child.geometry.type === 'SphereGeometry' && child.geometry.parameters.radius < 500000) ||
+                child.type === 'Sprite'
+            ).forEach(child => {
+                scene.remove(child);
             });
             
             const points = puntos.map(p => new THREE.Vector3(p[0], p[2], p[1]));
@@ -294,19 +321,45 @@
             scene.add(arcLine);
             
             // Punto inicial (verde)
-            const geometryStart = new THREE.SphereGeometry(250000, 32, 32);
+            const geometryStart = new THREE.SphereGeometry(300000, 32, 32);
             const materialStart = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
             const pointStart = new THREE.Mesh(geometryStart, materialStart);
             pointStart.position.set(puntos[0][0], puntos[0][2], puntos[0][1]);
             scene.add(pointStart);
             
             // Punto final (azul)
-            const geometryEnd = new THREE.SphereGeometry(250000, 32, 32);
+            const geometryEnd = new THREE.SphereGeometry(300000, 32, 32);
             const materialEnd = new THREE.MeshBasicMaterial({ color: 0x0000ff });
             const pointEnd = new THREE.Mesh(geometryEnd, materialEnd);
             const lastIdx = puntos.length - 1;
             pointEnd.position.set(puntos[lastIdx][0], puntos[lastIdx][2], puntos[lastIdx][1]);
             scene.add(pointEnd);
+            
+            // Etiquetas
+            createTextSprite('φ₁', puntos[0][0], puntos[0][2] + 800000, puntos[0][1]);
+            createTextSprite('φ₂', puntos[lastIdx][0], puntos[lastIdx][2] + 800000, puntos[lastIdx][1]);
+        }
+        
+        function createTextSprite(message, x, y, z) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 128;
+            
+            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            
+            context.font = 'Bold 48px Arial';
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.fillText(message, 128, 80);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(1000000, 500000, 1);
+            sprite.position.set(x, y, z);
+            scene.add(sprite);
         }
         
         async function calcular() {
@@ -327,8 +380,28 @@
                 return;
             }
             
-            if (phi1_grados < -90 || phi1_grados > 90 || phi2_grados < -90 || phi2_grados > 90) {
+            // Validaciones geodésicas
+            if (phi1_minutos < 0 || phi1_minutos >= 60 || phi2_minutos < 0 || phi2_minutos >= 60 || lambda_minutos < 0 || lambda_minutos >= 60) {
+                alert('Los minutos deben estar entre 0 y 59');
+                return;
+            }
+            
+            if (phi1_segundos < 0 || phi1_segundos >= 60 || phi2_segundos < 0 || phi2_segundos >= 60 || lambda_segundos < 0 || lambda_segundos >= 60) {
+                alert('Los segundos deben estar entre 0 y 59.999');
+                return;
+            }
+            
+            const phi1_decimal = phi1_grados + phi1_minutos/60 + phi1_segundos/3600;
+            const phi2_decimal = phi2_grados + phi2_minutos/60 + phi2_segundos/3600;
+            const lambda_decimal = lambda_grados + lambda_minutos/60 + lambda_segundos/3600;
+            
+            if (phi1_decimal < -90 || phi1_decimal > 90 || phi2_decimal < -90 || phi2_decimal > 90) {
                 alert('Las latitudes deben estar entre -90° y 90°');
+                return;
+            }
+            
+            if (lambda_decimal < -180 || lambda_decimal > 180) {
+                alert('La longitud debe estar entre -180° y 180°');
                 return;
             }
             
@@ -348,7 +421,7 @@
                 if (data.success) {
                     const longitudKm = data.longitud / 1000;
                     const diferencia = Math.abs(phi2_grados - phi1_grados);
-                    const porcentajoCuadrante = (data.longitud / 10001965.729) * 100;
+                    const porcentajeCuadrante = (data.longitud / 10001965.729) * 100;
                     
                     document.getElementById('resultados').innerHTML = `
                         <div class="resultados">
@@ -364,7 +437,7 @@
                                 <h3>📐 Información del Arco</h3>
                                 <p><strong>Diferencia de latitud:</strong> ${diferencia.toFixed(6)}°</p>
                                 <p><strong>Meridiano:</strong> ${lambda_grados}° ${lambda_minutos}' ${lambda_segundos}"</p>
-                                <p><strong>% del cuadrante:</strong> ${porcentajoCuadrante.toFixed(2)}%</p>
+                                <p><strong>% del cuadrante:</strong> ${porcentajeCuadrante.toFixed(2)}%</p>
                             </div>
                             
                             <div class="resultado-item">

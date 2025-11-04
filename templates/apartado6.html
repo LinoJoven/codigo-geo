@@ -5,132 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apartado 6 - Arco de Paralelo</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
         .btn-back {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background: white;
-            color: #fc4a1a;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: transform 0.2s;
-            z-index: 100;
+            position: fixed; top: 20px; left: 20px; padding: 10px 20px;
+            background: white; color: #fc4a1a; text-decoration: none;
+            border-radius: 5px; font-weight: bold; z-index: 100;
         }
-        .btn-back:hover { transform: scale(1.05); }
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
         }
-        .panel {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        .panel { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-        .coords-input {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-        }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
+        .coords-input { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         button {
-            width: 100%;
-            padding: 15px;
+            width: 100%; padding: 15px;
             background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
+            color: white; border: none; border-radius: 5px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
         }
-        button:hover { transform: scale(1.02); }
-        .resultados {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
+        .resultados { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
         .resultado-item {
-            margin-bottom: 15px;
-            padding: 15px;
-            background: white;
-            border-left: 4px solid #fc4a1a;
-            border-radius: 5px;
+            margin-bottom: 15px; padding: 15px;
+            background: white; border-left: 4px solid #fc4a1a; border-radius: 5px;
         }
-        .resultado-item h3 {
-            color: #fc4a1a;
-            margin-bottom: 10px;
-        }
-        #canvas-container {
-            width: 100%;
-            height: 600px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #0a0a0a;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        small {
-            display: block;
-            margin-top: 5px;
-            color: #666;
-        }
-        .info-box {
-            background: #d1ecf1;
-            border: 2px solid #17a2b8;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-        .info-box h4 {
-            color: #0c5460;
-            margin-bottom: 8px;
-        }
-        @media (max-width: 1024px) {
-            .container { grid-template-columns: 1fr; }
-        }
+        #canvas-container { width: 100%; height: 600px; border-radius: 10px; overflow: hidden; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .controls-info { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        small { display: block; margin-top: 5px; color: #666; font-size: 0.85em; }
+        .info-box { background: #d1ecf1; border: 2px solid #17a2b8; padding: 15px; border-radius: 8px; margin-top: 15px; }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -138,7 +53,7 @@
     
     <div class="header">
         <h1>🌐 Longitud de Arco de Paralelo</h1>
-        <p>Cálculo de distancia entre dos longitudes en el mismo paralelo</p>
+        <p>Distancia entre dos longitudes en el mismo paralelo</p>
     </div>
 
     <div class="container">
@@ -149,15 +64,15 @@
                 <label>Latitud del Paralelo (φ):</label>
                 <div class="coords-input">
                     <div>
-                        <input type="number" id="phi_grados" placeholder="Grados" step="any">
-                        <small>Grados</small>
+                        <input type="number" id="phi_grados" placeholder="Grados" min="-90" max="90">
+                        <small>Grados (-90 a 90)</small>
                     </div>
                     <div>
-                        <input type="number" id="phi_minutos" placeholder="Minutos" step="any" min="0" max="59">
-                        <small>Minutos</small>
+                        <input type="number" id="phi_minutos" placeholder="0" min="0" max="59" value="0">
+                        <small>Minutos (0-59)</small>
                     </div>
                     <div>
-                        <input type="number" id="phi_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <input type="number" id="phi_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
                         <small>Segundos</small>
                     </div>
                 </div>
@@ -167,15 +82,15 @@
                 <label>Longitud Inicial (λ₁):</label>
                 <div class="coords-input">
                     <div>
-                        <input type="number" id="lambda1_grados" placeholder="Grados" step="any">
+                        <input type="number" id="lambda1_grados" placeholder="Grados" min="-180" max="180">
                         <small>Grados</small>
                     </div>
                     <div>
-                        <input type="number" id="lambda1_minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <input type="number" id="lambda1_minutos" placeholder="0" min="0" max="59" value="0">
                         <small>Minutos</small>
                     </div>
                     <div>
-                        <input type="number" id="lambda1_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <input type="number" id="lambda1_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
                         <small>Segundos</small>
                     </div>
                 </div>
@@ -185,230 +100,201 @@
                 <label>Longitud Final (λ₂):</label>
                 <div class="coords-input">
                     <div>
-                        <input type="number" id="lambda2_grados" placeholder="Grados" step="any">
+                        <input type="number" id="lambda2_grados" placeholder="Grados" min="-180" max="180">
                         <small>Grados</small>
                     </div>
                     <div>
-                        <input type="number" id="lambda2_minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <input type="number" id="lambda2_minutos" placeholder="0" min="0" max="59" value="0">
                         <small>Minutos</small>
                     </div>
                     <div>
-                        <input type="number" id="lambda2_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <input type="number" id="lambda2_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
                         <small>Segundos</small>
                     </div>
                 </div>
             </div>
 
             <div class="info-box">
-                <h4>ℹ️ Sobre el Arco de Paralelo</h4>
-                <p>Un paralelo es una línea de latitud constante. El arco de paralelo es la distancia geodésica entre dos puntos con diferente longitud en el mismo paralelo.</p>
-                <p style="margin-top: 8px; font-size: 0.9em;">El ecuador es el paralelo más largo (máximo radio).</p>
+                <h4>ℹ️ Arco de Paralelo</h4>
+                <p>Distancia sobre un círculo de latitud constante entre dos puntos de diferente longitud.</p>
             </div>
 
-            <button onclick="calcular()">Calcular Longitud del Arco</button>
-
+            <button onclick="calcular()">Calcular Longitud</button>
             <div id="resultados"></div>
         </div>
 
         <div class="panel">
-            <h2>Visualización 3D del Arco</h2>
+            <h2>Visualización 3D</h2>
+            <div class="controls-info">
+                <h4>🎮 Controles</h4>
+                <p><strong>Izquierdo:</strong> Rotar | <strong>Rueda:</strong> Zoom | <strong>Derecho:</strong> Mover</p>
+            </div>
             <div id="canvas-container"></div>
             <div style="margin-top: 15px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
-                <p style="margin-bottom: 10px;"><strong>🟠 Línea Naranja:</strong> Arco de paralelo calculado</p>
-                <p style="margin-bottom: 10px;"><strong>🟢 Punto Verde:</strong> Longitud inicial (λ₁)</p>
-                <p><strong>🔵 Punto Azul:</strong> Longitud final (λ₂)</p>
+                <p><strong>🟠 Línea Naranja:</strong> Arco de paralelo | <strong>🟢 Verde:</strong> λ₁ | <strong>🔵 Azul:</strong> λ₂</p>
             </div>
         </div>
     </div>
 
     <script>
-        let scene, camera, renderer, ellipsoid, arcLine;
+        let scene, camera, renderer, controls;
         
-        function initThree() {
+        function init3D() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0a0a);
-            
-            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 20000000);
+            camera = new THREE.PerspectiveCamera(75, 1, 0.1, 50000000);
             camera.position.set(15000000, 10000000, 15000000);
             
-            renderer = new THREE.WebGLRenderer({ antialias: true });
             const container = document.getElementById('canvas-container');
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
             
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 10000000;
+            controls.maxDistance = 30000000;
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10000000, 10000000, 10000000);
-            scene.add(directionalLight);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(10000000, 10000000, 10000000);
+            scene.add(light);
             
-            const a = 6378137;
-            const b = 6356752.314245;
-            const geometry = new THREE.SphereGeometry(a, 64, 64);
-            geometry.scale(1, 1, b/a);
+            const geo = new THREE.SphereGeometry(6378137, 64, 64);
+            geo.scale(1, 1, 6356752/6378137);
+            scene.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ 
+                color: 0xfc4a1a, transparent: true, opacity: 0.5 
+            })));
             
-            const material = new THREE.MeshPhongMaterial({
-                color: 0xfc4a1a,
-                transparent: true,
-                opacity: 0.6
-            });
-            
-            ellipsoid = new THREE.Mesh(geometry, material);
-            scene.add(ellipsoid);
-            
-            const wireframeGeometry = new THREE.SphereGeometry(a * 1.01, 32, 32);
-            wireframeGeometry.scale(1, 1, b/a);
-            const wireframeMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.2
-            });
-            const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
-            scene.add(wireframe);
-            
-            const axesHelper = new THREE.AxesHelper(8000000);
-            scene.add(axesHelper);
+            const wireGeo = new THREE.SphereGeometry(6378137*1.005, 24, 24);
+            wireGeo.scale(1, 1, 6356752/6378137);
+            scene.add(new THREE.LineSegments(
+                new THREE.EdgesGeometry(wireGeo),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })
+            ));
+            scene.add(new THREE.AxesHelper(10000000));
             
             animate();
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
         }
         
         function animate() {
             requestAnimationFrame(animate);
-            ellipsoid.rotation.y += 0.001;
+            controls.update();
             renderer.render(scene, camera);
         }
         
         function drawArc(puntos) {
-            scene.children.forEach(child => {
-                if (child.type === 'Line' || (child.type === 'Mesh' && child !== ellipsoid && child.geometry.type === 'SphereGeometry' && child.geometry.parameters.radius < 500000)) {
-                    scene.remove(child);
-                }
-            });
+            scene.children = scene.children.filter(c => 
+                c.type !== 'Line' && 
+                !(c.type === 'Mesh' && c.geometry.type === 'SphereGeometry' && c.geometry.parameters.radius < 500000)
+            );
             
-            const points = puntos.map(p => new THREE.Vector3(p[0], p[2], p[1]));
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: 0xff8800, linewidth: 3 });
-            arcLine = new THREE.Line(geometry, material);
-            scene.add(arcLine);
+            const pts = puntos.map(p => new THREE.Vector3(p[0], p[2], p[1]));
+            scene.add(new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(pts),
+                new THREE.LineBasicMaterial({ color: 0xff8800, linewidth: 3 })
+            ));
             
-            const geometryStart = new THREE.SphereGeometry(250000, 32, 32);
-            const materialStart = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-            const pointStart = new THREE.Mesh(geometryStart, materialStart);
-            pointStart.position.set(puntos[0][0], puntos[0][2], puntos[0][1]);
-            scene.add(pointStart);
+            const p1 = new THREE.Mesh(
+                new THREE.SphereGeometry(300000, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+            );
+            p1.position.set(puntos[0][0], puntos[0][2], puntos[0][1]);
+            scene.add(p1);
             
-            const geometryEnd = new THREE.SphereGeometry(250000, 32, 32);
-            const materialEnd = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-            const pointEnd = new THREE.Mesh(geometryEnd, materialEnd);
-            const lastIdx = puntos.length - 1;
-            pointEnd.position.set(puntos[lastIdx][0], puntos[lastIdx][2], puntos[lastIdx][1]);
-            scene.add(pointEnd);
+            const p2 = new THREE.Mesh(
+                new THREE.SphereGeometry(300000, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0x0000ff })
+            );
+            const last = puntos.length - 1;
+            p2.position.set(puntos[last][0], puntos[last][2], puntos[last][1]);
+            scene.add(p2);
         }
         
         async function calcular() {
-            const phi_grados = parseFloat(document.getElementById('phi_grados').value);
-            const phi_minutos = parseFloat(document.getElementById('phi_minutos').value) || 0;
-            const phi_segundos = parseFloat(document.getElementById('phi_segundos').value) || 0;
+            const phi_g = parseFloat(document.getElementById('phi_grados').value);
+            const phi_m = parseFloat(document.getElementById('phi_minutos').value) || 0;
+            const phi_s = parseFloat(document.getElementById('phi_segundos').value) || 0;
+            const lam1_g = parseFloat(document.getElementById('lambda1_grados').value);
+            const lam1_m = parseFloat(document.getElementById('lambda1_minutos').value) || 0;
+            const lam1_s = parseFloat(document.getElementById('lambda1_segundos').value) || 0;
+            const lam2_g = parseFloat(document.getElementById('lambda2_grados').value);
+            const lam2_m = parseFloat(document.getElementById('lambda2_minutos').value) || 0;
+            const lam2_s = parseFloat(document.getElementById('lambda2_segundos').value) || 0;
             
-            const lambda1_grados = parseFloat(document.getElementById('lambda1_grados').value);
-            const lambda1_minutos = parseFloat(document.getElementById('lambda1_minutos').value) || 0;
-            const lambda1_segundos = parseFloat(document.getElementById('lambda1_segundos').value) || 0;
-            
-            const lambda2_grados = parseFloat(document.getElementById('lambda2_grados').value);
-            const lambda2_minutos = parseFloat(document.getElementById('lambda2_minutos').value) || 0;
-            const lambda2_segundos = parseFloat(document.getElementById('lambda2_segundos').value) || 0;
-            
-            if (isNaN(phi_grados) || isNaN(lambda1_grados) || isNaN(lambda2_grados)) {
-                alert('Por favor complete todos los campos requeridos');
+            if (isNaN(phi_g) || isNaN(lam1_g) || isNaN(lam2_g)) {
+                alert('Complete todos los campos');
                 return;
             }
             
-            if (phi_grados < -90 || phi_grados > 90) {
-                alert('La latitud debe estar entre -90° y 90°');
+            if (phi_m < 0 || phi_m >= 60 || lam1_m < 0 || lam1_m >= 60 || lam2_m < 0 || lam2_m >= 60) {
+                alert('Minutos: 0-59');
+                return;
+            }
+            if (phi_s < 0 || phi_s >= 60 || lam1_s < 0 || lam1_s >= 60 || lam2_s < 0 || lam2_s >= 60) {
+                alert('Segundos: 0-59.999');
+                return;
+            }
+            
+            const phi_dec = phi_g + phi_m/60 + phi_s/3600;
+            const lam1_dec = lam1_g + lam1_m/60 + lam1_s/3600;
+            const lam2_dec = lam2_g + lam2_m/60 + lam2_s/3600;
+            
+            if (phi_dec < -90 || phi_dec > 90) {
+                alert('Latitud: -90° a 90°');
+                return;
+            }
+            if (lam1_dec < -180 || lam1_dec > 180 || lam2_dec < -180 || lam2_dec > 180) {
+                alert('Longitud: -180° a 180°');
                 return;
             }
             
             try {
-                const response = await fetch('/api/apartado6', {
+                const res = await fetch('/api/apartado6', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        phi_grados, phi_minutos, phi_segundos,
-                        lambda1_grados, lambda1_minutos, lambda1_segundos,
-                        lambda2_grados, lambda2_minutos, lambda2_segundos
+                        phi_grados: phi_g, phi_minutos: phi_m, phi_segundos: phi_s,
+                        lambda1_grados: lam1_g, lambda1_minutos: lam1_m, lambda1_segundos: lam1_s,
+                        lambda2_grados: lam2_g, lambda2_minutos: lam2_m, lambda2_segundos: lam2_s
                     })
                 });
-                
-                const data = await response.json();
+                const data = await res.json();
                 
                 if (data.success) {
-                    const longitudKm = data.longitud / 1000;
-                    const diferencia = Math.abs(lambda2_grados - lambda1_grados);
-                    
-                    const circunferenciaEcuador = 2 * Math.PI * 6378137;
-                    const phi_rad = (phi_grados + phi_minutos/60 + phi_segundos/3600) * Math.PI / 180;
-                    const radioParalelo = 6378137 * Math.cos(phi_rad);
-                    const circunferenciaParalelo = 2 * Math.PI * radioParalelo;
-                    const porcentajeCircunferencia = (data.longitud / circunferenciaParalelo) * 100;
+                    const km = data.longitud / 1000;
+                    const radio = 6378137 * Math.cos(phi_dec * Math.PI / 180);
+                    const circ = 2 * Math.PI * radio;
                     
                     document.getElementById('resultados').innerHTML = `
                         <div class="resultados">
-                            <h3>Resultados del Arco de Paralelo</h3>
-                            
+                            <h3>Resultados</h3>
                             <div class="resultado-item">
-                                <h3>📏 Longitud del Arco</h3>
-                                <p><strong>En metros:</strong> ${data.longitud.toFixed(3)} m</p>
-                                <p><strong>En kilómetros:</strong> ${longitudKm.toFixed(3)} km</p>
+                                <p><strong>Longitud:</strong> ${data.longitud.toFixed(3)} m</p>
+                                <p><strong>En km:</strong> ${km.toFixed(3)} km</p>
                             </div>
-                            
                             <div class="resultado-item">
-                                <h3>📐 Información del Arco</h3>
-                                <p><strong>Latitud del paralelo:</strong> ${phi_grados}° ${phi_minutos}' ${phi_segundos}"</p>
-                                <p><strong>Diferencia de longitud:</strong> ${diferencia.toFixed(6)}°</p>
-                                <p><strong>% de la circunferencia:</strong> ${porcentajeCircunferencia.toFixed(2)}%</p>
-                            </div>
-                            
-                            <div class="resultado-item">
-                                <h3>🌍 Radio del Paralelo</h3>
-                                <p><strong>Radio en esta latitud:</strong> ${(radioParalelo/1000).toFixed(3)} km</p>
-                                <p><strong>Radio ecuatorial:</strong> 6,378.137 km</p>
-                                <p><strong>Circunferencia completa:</strong> ${(circunferenciaParalelo/1000).toFixed(3)} km</p>
-                            </div>
-                            
-                            <div class="resultado-item">
-                                <h3>📊 Comparación</h3>
-                                <p><strong>Circunferencia ecuador:</strong> ${(circunferenciaEcuador/1000).toFixed(3)} km</p>
-                                <p><strong>Radio paralelo / Radio ecuador:</strong> ${(radioParalelo/6378137*100).toFixed(2)}%</p>
-                                <p style="font-size: 0.9em; color: #666; margin-top: 8px;">
-                                    Los paralelos se acortan hacia los polos (radio = 0 en los polos)
-                                </p>
+                                <p><strong>Radio paralelo:</strong> ${(radio/1000).toFixed(3)} km</p>
+                                <p><strong>Circunferencia:</strong> ${(circ/1000).toFixed(3)} km</p>
                             </div>
                         </div>
                     `;
-                    
                     drawArc(data.puntos);
                 } else {
-                    document.getElementById('resultados').innerHTML = `
-                        <div class="error">Error: ${data.error}</div>
-                    `;
+                    document.getElementById('resultados').innerHTML = `<div class="error">${data.error}</div>`;
                 }
-            } catch (error) {
-                document.getElementById('resultados').innerHTML = `
-                    <div class="error">Error de conexión: ${error.message}</div>
-                `;
+            } catch (e) {
+                document.getElementById('resultados').innerHTML = `<div class="error">${e.message}</div>`;
             }
         }
         
-        window.addEventListener('resize', () => {
-            const container = document.getElementById('canvas-container');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        });
-        
-        initThree();
+        init3D();
     </script>
 </body>
 </html>
