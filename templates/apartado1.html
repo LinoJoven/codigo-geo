@@ -69,9 +69,7 @@
             gap: 10px;
             margin-bottom: 10px;
         }
-        .coords-input input {
-            width: 100%;
-        }
+        .coords-input input { width: 100%; }
         button {
             width: 100%;
             padding: 15px;
@@ -126,6 +124,12 @@
             color: #1976d2;
             margin-bottom: 8px;
         }
+        small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.85em;
+        }
         @media (max-width: 1024px) {
             .container { grid-template-columns: 1fr; }
         }
@@ -135,8 +139,8 @@
     <a href="/" class="btn-back">← Volver</a>
     
     <div class="header">
-        <h1>📐 Transformación de Latitudes</h1>
-        <p>Conversión entre φ (Geodésica), θ (Paramétrica) y ω (Geocéntrica)</p>
+        <h1>🌐 Transformación de Latitudes</h1>
+        <p>Conversión entre φ (Geodésica), θ (Paramétrica) y ω (Geocéntrica) con posición espacial completa</p>
     </div>
 
     <div class="container">
@@ -154,18 +158,36 @@
             </div>
 
             <div class="form-group">
-                <label>Valor en Grados, Minutos, Segundos:</label>
+                <label>Latitud - Grados, Minutos, Segundos:</label>
                 <div class="coords-input">
                     <div>
-                        <input type="number" id="grados" placeholder="Grados" step="any">
-                        <small>Grados</small>
+                        <input type="number" id="lat_grados" placeholder="Grados" step="any" min="-90" max="90">
+                        <small>Grados (-90 a 90)</small>
                     </div>
                     <div>
-                        <input type="number" id="minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <input type="number" id="lat_minutos" placeholder="0" step="any" min="0" max="59" value="0">
                         <small>Minutos (0-59)</small>
                     </div>
                     <div>
-                        <input type="number" id="segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <input type="number" id="lat_segundos" placeholder="0" step="any" min="0" max="59.999" value="0">
+                        <small>Segundos (0-59.999)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Longitud (λ) - Grados, Minutos, Segundos:</label>
+                <div class="coords-input">
+                    <div>
+                        <input type="number" id="lon_grados" placeholder="Grados" step="any" min="-180" max="180">
+                        <small>Grados (-180 a 180)</small>
+                    </div>
+                    <div>
+                        <input type="number" id="lon_minutos" placeholder="0" step="any" min="0" max="59" value="0">
+                        <small>Minutos (0-59)</small>
+                    </div>
+                    <div>
+                        <input type="number" id="lon_segundos" placeholder="0" step="any" min="0" max="59.999" value="0">
                         <small>Segundos (0-59.999)</small>
                     </div>
                 </div>
@@ -189,8 +211,9 @@
     </div>
 
     <script>
-        let scene, camera, renderer, controls, ellipsoid, point, meridianLine;
+        let scene, camera, renderer, controls, ellipsoid, point, meridianLine, parallelLine;
         
+        // OrbitControls personalizado optimizado
         class OrbitControls {
             constructor(camera, domElement) {
                 this.camera = camera;
@@ -255,7 +278,7 @@
                 }
             }
             
-            onMouseUp(event) {
+            onMouseUp() {
                 this.isRotating = false;
                 this.isPanning = false;
                 document.removeEventListener('mousemove', (e) => this.onMouseMove(e));
@@ -264,29 +287,19 @@
             
             onMouseWheel(event) {
                 event.preventDefault();
-                if (event.deltaY < 0) {
-                    this.scale /= this.zoomSpeed;
-                } else if (event.deltaY > 0) {
-                    this.scale *= this.zoomSpeed;
-                }
+                this.scale = event.deltaY < 0 ? this.scale / this.zoomSpeed : this.scale * this.zoomSpeed;
                 this.update();
             }
             
             pan(deltaX, deltaY) {
                 const offset = new THREE.Vector3();
-                const panLeft = new THREE.Vector3();
-                const panUp = new THREE.Vector3();
+                const v = new THREE.Vector3().copy(this.camera.position).sub(this.target);
+                const targetDistance = v.length() * Math.tan((this.camera.fov / 2) * Math.PI / 180.0);
                 
-                const v = new THREE.Vector3();
-                v.copy(this.camera.position).sub(this.target);
-                const targetDistance = v.length();
-                
-                targetDistance *= Math.tan((this.camera.fov / 2) * Math.PI / 180.0);
-                
-                panLeft.setFromMatrixColumn(this.camera.matrix, 0);
+                const panLeft = new THREE.Vector3().setFromMatrixColumn(this.camera.matrix, 0);
                 panLeft.multiplyScalar(-2 * deltaX * targetDistance / this.domElement.clientHeight);
                 
-                panUp.setFromMatrixColumn(this.camera.matrix, 1);
+                const panUp = new THREE.Vector3().setFromMatrixColumn(this.camera.matrix, 1);
                 panUp.multiplyScalar(2 * deltaY * targetDistance / this.domElement.clientHeight);
                 
                 offset.copy(panLeft).add(panUp);
@@ -367,21 +380,22 @@
             scene.add(axesHelper);
             
             drawMeridians(a, b);
-            drawEquator(a, b);
+            drawEquator(a);
             
             animate();
         }
         
         function drawMeridians(a, b) {
+            const e2 = 0.00669438002290;
             for (let lon = 0; lon < 360; lon += 30) {
                 const points = [];
                 for (let lat = -90; lat <= 90; lat += 5) {
                     const phi = lat * Math.PI / 180;
                     const lambda = lon * Math.PI / 180;
-                    const N = a / Math.sqrt(1 - 0.00669438002290 * Math.sin(phi) ** 2);
+                    const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
                     const x = N * Math.cos(phi) * Math.cos(lambda);
                     const y = N * Math.cos(phi) * Math.sin(lambda);
-                    const z = N * (1 - 0.00669438002290) * Math.sin(phi);
+                    const z = N * (1 - e2) * Math.sin(phi);
                     points.push(new THREE.Vector3(x, z, y));
                 }
                 const geometry = new THREE.BufferGeometry().setFromPoints(points);
@@ -391,14 +405,13 @@
             }
         }
         
-        function drawEquator(a, b) {
+        function drawEquator(a) {
             const points = [];
             for (let lon = 0; lon <= 360; lon += 5) {
                 const lambda = lon * Math.PI / 180;
                 const x = a * Math.cos(lambda);
                 const y = a * Math.sin(lambda);
-                const z = 0;
-                points.push(new THREE.Vector3(x, z, y));
+                points.push(new THREE.Vector3(x, 0, y));
             }
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const material = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
@@ -411,16 +424,20 @@
             renderer.render(scene, camera);
         }
         
-        function addPoint(x, y, z) {
-            if (point) scene.remove(point);
-            if (meridianLine) scene.remove(meridianLine);
+        function addPoint(x, y, z, lat_deg, lon_deg) {
+            // Limpiar elementos previos
+            [point, meridianLine, parallelLine].forEach(obj => {
+                if (obj) scene.remove(obj);
+            });
             
-            const geometry = new THREE.SphereGeometry(200000, 32, 32);
+            // Punto principal
+            const geometry = new THREE.SphereGeometry(250000, 32, 32);
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             point = new THREE.Mesh(geometry, material);
             point.position.set(x, z, y);
             scene.add(point);
             
+            // Línea desde el origen
             const lineGeometry = new THREE.BufferGeometry().setFromPoints([
                 new THREE.Vector3(0, 0, 0),
                 new THREE.Vector3(x, z, y)
@@ -429,75 +446,106 @@
             meridianLine = new THREE.Line(lineGeometry, lineMaterial);
             scene.add(meridianLine);
             
-            createTextSprite('Punto φ', x, z + 500000, y);
+            // Dibujar meridiano del punto
+            drawPointMeridian(lon_deg);
+            
+            // Dibujar paralelo del punto
+            drawPointParallel(lat_deg);
         }
         
-        function createTextSprite(message, x, y, z) {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 256;
-            canvas.height = 128;
+        function drawPointMeridian(lon_deg) {
+            const points = [];
+            const lambda = lon_deg * Math.PI / 180;
+            const e2 = 0.00669438002290;
+            const a = 6378137;
             
-            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
-            context.fillRect(0, 0, canvas.width, canvas.height);
+            for (let lat = -90; lat <= 90; lat += 2) {
+                const phi = lat * Math.PI / 180;
+                const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+                const x = N * Math.cos(phi) * Math.cos(lambda);
+                const y = N * Math.cos(phi) * Math.sin(lambda);
+                const z = N * (1 - e2) * Math.sin(phi);
+                points.push(new THREE.Vector3(x, z, y));
+            }
             
-            context.font = 'Bold 40px Arial';
-            context.fillStyle = 'white';
-            context.textAlign = 'center';
-            context.fillText(message, 128, 70);
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
+            const meridian = new THREE.Line(geometry, material);
+            scene.add(meridian);
+            meridianLine = meridian;
+        }
+        
+        function drawPointParallel(lat_deg) {
+            const points = [];
+            const phi = lat_deg * Math.PI / 180;
+            const e2 = 0.00669438002290;
+            const a = 6378137;
+            const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
             
-            const texture = new THREE.CanvasTexture(canvas);
-            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-            const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.scale.set(1000000, 500000, 1);
-            sprite.position.set(x, y, z);
-            scene.add(sprite);
+            for (let lon = 0; lon <= 360; lon += 2) {
+                const lambda = lon * Math.PI / 180;
+                const x = N * Math.cos(phi) * Math.cos(lambda);
+                const y = N * Math.cos(phi) * Math.sin(lambda);
+                const z = N * (1 - e2) * Math.sin(phi);
+                points.push(new THREE.Vector3(x, z, y));
+            }
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+            parallelLine = new THREE.Line(geometry, material);
+            scene.add(parallelLine);
         }
         
         async function calcular() {
             const tipo_entrada = document.getElementById('tipo_entrada').value;
-            const grados = parseFloat(document.getElementById('grados').value);
-            const minutos = parseFloat(document.getElementById('minutos').value) || 0;
-            const segundos = parseFloat(document.getElementById('segundos').value) || 0;
+            const lat_grados = parseFloat(document.getElementById('lat_grados').value);
+            const lat_minutos = parseFloat(document.getElementById('lat_minutos').value) || 0;
+            const lat_segundos = parseFloat(document.getElementById('lat_segundos').value) || 0;
+            const lon_grados = parseFloat(document.getElementById('lon_grados').value);
+            const lon_minutos = parseFloat(document.getElementById('lon_minutos').value) || 0;
+            const lon_segundos = parseFloat(document.getElementById('lon_segundos').value) || 0;
             
             if (!tipo_entrada) {
                 alert('Por favor seleccione el tipo de latitud de entrada');
                 return;
             }
             
-            if (isNaN(grados)) {
-                alert('Por favor ingrese al menos los grados');
+            if (isNaN(lat_grados) || isNaN(lon_grados)) {
+                alert('Por favor ingrese valores para latitud y longitud');
                 return;
             }
             
-            // Validaciones geodésicas estrictas
-            if (minutos < 0 || minutos >= 60) {
+            if (lat_minutos < 0 || lat_minutos >= 60 || lon_minutos < 0 || lon_minutos >= 60) {
                 alert('Los minutos deben estar entre 0 y 59');
                 return;
             }
             
-            if (segundos < 0 || segundos >= 60) {
+            if (lat_segundos < 0 || lat_segundos >= 60 || lon_segundos < 0 || lon_segundos >= 60) {
                 alert('Los segundos deben estar entre 0 y 59.999');
                 return;
             }
             
-            const decimal = grados + minutos/60 + segundos/3600;
-            if (decimal < -90 || decimal > 90) {
+            const lat_decimal = lat_grados + lat_minutos/60 + lat_segundos/3600;
+            const lon_decimal = lon_grados + lon_minutos/60 + lon_segundos/3600;
+            
+            if (lat_decimal < -90 || lat_decimal > 90) {
                 alert('La latitud debe estar entre -90° y 90°');
+                return;
+            }
+            
+            if (lon_decimal < -180 || lon_decimal > 180) {
+                alert('La longitud debe estar entre -180° y 180°');
                 return;
             }
             
             try {
                 const response = await fetch('/api/apartado1', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        tipo_entrada,
-                        grados,
-                        minutos,
-                        segundos
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        tipo_entrada, 
+                        lat_grados, lat_minutos, lat_segundos,
+                        lon_grados, lon_minutos, lon_segundos
                     })
                 });
                 
@@ -505,25 +553,29 @@
                 
                 if (data.success) {
                     mostrarResultados(data.resultados);
-                    addPoint(data.resultados.coords.X, data.resultados.coords.Y, data.resultados.coords.Z);
+                    addPoint(
+                        data.resultados.coords.X, 
+                        data.resultados.coords.Y, 
+                        data.resultados.coords.Z,
+                        data.resultados.phi.decimal,
+                        lon_decimal
+                    );
                 } else {
                     document.getElementById('resultados').innerHTML = `
-                        <div class="error">Error: ${data.error}</div>
+                        <div class="error">❌ Error: ${data.error}</div>
                     `;
                 }
             } catch (error) {
                 document.getElementById('resultados').innerHTML = `
-                    <div class="error">Error de conexión: ${error.message}</div>
+                    <div class="error">❌ Error de conexión: ${error.message}</div>
                 `;
             }
         }
         
         function mostrarResultados(resultados) {
-            const div = document.getElementById('resultados');
-            
-            div.innerHTML = `
+            document.getElementById('resultados').innerHTML = `
                 <div class="resultados">
-                    <h3>Resultados de la Transformación</h3>
+                    <h3>✅ Resultados de la Transformación</h3>
                     
                     <div class="resultado-item">
                         <h3>φ (Latitud Geodésica)</h3>
@@ -541,6 +593,13 @@
                         <h3>ω (Latitud Geocéntrica)</h3>
                         <p><strong>Decimal:</strong> ${resultados.omega.decimal.toFixed(10)}°</p>
                         <p><strong>DMS:</strong> ${resultados.omega.dms[0]}° ${resultados.omega.dms[1]}' ${resultados.omega.dms[2].toFixed(4)}"</p>
+                    </div>
+                    
+                    <div class="resultado-item">
+                        <h3>📍 Coordenadas Cartesianas</h3>
+                        <p><strong>X:</strong> ${resultados.coords.X.toFixed(3)} m</p>
+                        <p><strong>Y:</strong> ${resultados.coords.Y.toFixed(3)} m</p>
+                        <p><strong>Z:</strong> ${resultados.coords.Z.toFixed(3)} m</p>
                     </div>
                 </div>
             `;
