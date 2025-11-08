@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,165 +9,46 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
         .btn-back {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background: white;
-            color: #2c3e50;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: transform 0.2s;
-            z-index: 100;
+            position: fixed; top: 20px; left: 20px; padding: 10px 20px;
+            background: white; color: #2c3e50; text-decoration: none;
+            border-radius: 5px; font-weight: bold; z-index: 100;
         }
-        .btn-back:hover { transform: scale(1.05); }
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        .panel {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            margin-bottom: 30px;
-        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .panel { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 30px; }
         .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-        }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
         .punto-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border-left: 4px solid #3498db;
+            background: #f8f9fa; padding: 20px; border-radius: 10px;
+            margin-bottom: 15px; border-left: 4px solid #3498db;
         }
-        .punto-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .punto-header h3 {
-            color: #2c3e50;
-        }
-        .btn-remove {
-            padding: 5px 15px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .inputs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        .button-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
+        .punto-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .punto-header h3 { color: #2c3e50; }
+        .btn-remove { padding: 5px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         button {
-            padding: 15px;
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
+            padding: 15px; background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white; border: none; border-radius: 5px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
         }
-        button:hover { transform: scale(1.02); }
-        .btn-add {
-            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-        }
-        #canvas-container {
-            width: 100%;
-            height: 500px;
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        .tabla-resultados {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .tabla-resultados th, .tabla-resultados td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        .tabla-resultados th {
-            background: #3498db;
-            color: white;
-            font-weight: bold;
-        }
-        .tabla-resultados tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        small {
-            display: block;
-            margin-top: 5px;
-            color: #666;
-        }
-        .info-box {
-            background: #d4edda;
-            border: 2px solid #28a745;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .info-box h4 {
-            color: #155724;
-            margin-bottom: 8px;
-        }
-        @media (max-width: 768px) {
-            .inputs-grid {
-                grid-template-columns: 1fr;
-            }
-            .button-group {
-                grid-template-columns: 1fr;
-            }
-        }
+        .btn-add { background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); }
+        #canvas-container { width: 100%; height: 500px; background: white; border-radius: 10px; padding: 20px; }
+        .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .tabla-resultados th, .tabla-resultados td { padding: 12px; text-align: center; border: 1px solid #ddd; }
+        .tabla-resultados th { background: #3498db; color: white; font-weight: bold; }
+        .tabla-resultados tr:nth-child(even) { background: #f8f9fa; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        small { display: block; margin-top: 5px; color: #666; }
+        .info-box { background: #d4edda; border: 2px solid #28a745; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        @media (max-width: 768px) { .inputs-grid, .button-group { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -180,204 +62,141 @@
     <div class="container">
         <div class="panel">
             <h2>Configuración Inicial</h2>
-            
             <div class="info-box">
-                <h4>ℹ️ Sobre Nivelación Diferencial</h4>
-                <p><strong>Vista + (Atrás):</strong> Lectura sobre el punto de cota conocida</p>
-                <p><strong>Vista - (Adelante):</strong> Lectura hacia el siguiente punto</p>
-                <p><strong>Vista Intermedia:</strong> Lecturas auxiliares (opcional)</p>
-                <p><strong>Desnivel = Vista + - Vista -</strong></p>
+                <h4>ℹ️ Nivelación Diferencial</h4>
+                <p><strong>Vista + (Atrás):</strong> Sobre punto conocido | <strong>Vista - (Adelante):</strong> Siguiente punto | <strong>Desnivel = V+ - V-</strong></p>
             </div>
-            
             <div class="form-group">
                 <label>Cota Inicial (m):</label>
-                <input type="number" id="cota_inicial" placeholder="Ej: 100.000" step="0.001" value="100.000">
-                <small>Cota del punto de partida (BM - Banco de Nivel)</small>
+                <input type="number" id="cota_inicial" placeholder="100.000" step="0.001" value="100.000">
+                <small>Cota del BM (Banco de Nivel)</small>
             </div>
         </div>
 
         <div class="panel">
             <h2>Puntos de Nivelación</h2>
             <div id="puntos-container"></div>
-            
             <div class="button-group">
                 <button class="btn-add" onclick="agregarPunto()">➕ Agregar Punto</button>
-                <button onclick="calcular()">🔢 Calcular Nivelación</button>
+                <button onclick="calcular()">🔢 Calcular</button>
             </div>
         </div>
 
         <div class="panel" id="resultados-panel" style="display: none;">
-            <h2>Resultados de la Nivelación</h2>
+            <h2>Resultados</h2>
             <div id="tabla-container"></div>
         </div>
 
         <div class="panel" id="grafico-panel" style="display: none;">
             <h2>Perfil Longitudinal</h2>
-            <div id="canvas-container">
-                <canvas id="myChart"></canvas>
-            </div>
+            <div id="canvas-container"><canvas id="myChart"></canvas></div>
         </div>
     </div>
 
     <script>
-        let puntoCount = 0;
-        let myChart = null;
+        let puntoCount = 0, myChart = null;
         
         function agregarPunto() {
             puntoCount++;
-            const container = document.getElementById('puntos-container');
-            
-            const puntoDiv = document.createElement('div');
-            puntoDiv.className = 'punto-item';
-            puntoDiv.id = `punto-${puntoCount}`;
-            puntoDiv.innerHTML = `
+            const div = document.createElement('div');
+            div.className = 'punto-item';
+            div.id = `punto-${puntoCount}`;
+            div.innerHTML = `
                 <div class="punto-header">
                     <h3>Estación ${puntoCount}</h3>
-                    <button class="btn-remove" onclick="removerPunto(${puntoCount})">✖ Eliminar</button>
+                    <button class="btn-remove" onclick="removerPunto(${puntoCount})">✖</button>
                 </div>
                 <div class="inputs-grid">
                     <div>
-                        <label>Vista + (Atrás) [m]:</label>
+                        <label>Vista + (Atrás):</label>
                         <input type="number" step="0.001" placeholder="0.000" data-punto="${puntoCount}" data-campo="v_mas">
                         <small>Lectura atrás</small>
                     </div>
                     <div>
-                        <label>Vista - (Adelante) [m]:</label>
+                        <label>Vista - (Adelante):</label>
                         <input type="number" step="0.001" placeholder="0.000" data-punto="${puntoCount}" data-campo="v_menos">
                         <small>Lectura adelante</small>
                     </div>
                     <div>
-                        <label>Vista Intermedia [m]:</label>
+                        <label>Vista Intermedia:</label>
                         <input type="number" step="0.001" placeholder="Opcional" data-punto="${puntoCount}" data-campo="v_intermedia">
-                        <small>Lectura intermedia</small>
+                        <small>Opcional</small>
                     </div>
                     <div>
-                        <label>Distancia [m]:</label>
+                        <label>Distancia (m):</label>
                         <input type="number" step="0.1" placeholder="0.0" data-punto="${puntoCount}" data-campo="distancia" value="${puntoCount * 10}">
-                        <small>Distancia acumulada</small>
+                        <small>Acumulada</small>
                     </div>
                 </div>
             `;
-            
-            container.appendChild(puntoDiv);
+            document.getElementById('puntos-container').appendChild(div);
         }
         
         function removerPunto(id) {
-            const punto = document.getElementById(`punto-${id}`);
-            if (punto) {
-                punto.remove();
-            }
+            const p = document.getElementById(`punto-${id}`);
+            if (p) p.remove();
         }
         
         function recolectarDatos() {
             const puntos = [];
             const inputs = document.querySelectorAll('input[data-punto]');
-            const puntosMap = {};
-            
+            const map = {};
             inputs.forEach(input => {
-                const puntoId = input.dataset.punto;
+                const id = input.dataset.punto;
                 const campo = input.dataset.campo;
-                const valor = parseFloat(input.value) || 0;
-                
-                if (!puntosMap[puntoId]) {
-                    puntosMap[puntoId] = {};
-                }
-                puntosMap[puntoId][campo] = valor;
+                if (!map[id]) map[id] = {};
+                map[id][campo] = parseFloat(input.value) || 0;
             });
-            
-            for (let id in puntosMap) {
-                puntos.push(puntosMap[id]);
-            }
-            
+            for (let id in map) puntos.push(map[id]);
             return puntos;
         }
         
         async function calcular() {
-            const cotaInicial = parseFloat(document.getElementById('cota_inicial').value);
-            
-            if (isNaN(cotaInicial)) {
-                alert('Por favor ingrese la cota inicial');
-                return;
-            }
+            const cota = parseFloat(document.getElementById('cota_inicial').value);
+            if (isNaN(cota)) { alert('Ingrese cota inicial'); return; }
             
             const puntos = recolectarDatos();
-            
-            if (puntos.length === 0) {
-                alert('Por favor agregue al menos un punto de nivelación');
-                return;
-            }
-            
-            const datos = {
-                cota_inicial: cotaInicial,
-                puntos: puntos
-            };
+            if (puntos.length === 0) { alert('Agregue al menos un punto'); return; }
             
             try {
-                const response = await fetch('/api/apartado7', {
+                const res = await fetch('/api/apartado7', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datos)
+                    body: JSON.stringify({ cota_inicial: cota, puntos })
                 });
-                
-                const data = await response.json();
+                const data = await res.json();
                 
                 if (data.success) {
-                    mostrarResultados(data.resultados, cotaInicial);
-                    dibujarGrafico(data.resultados, cotaInicial);
+                    mostrarResultados(data.resultados, cota);
+                    dibujarGrafico(data.resultados, cota);
                 } else {
                     alert('Error: ' + data.error);
                 }
-            } catch (error) {
-                alert('Error de conexión: ' + error.message);
+            } catch (e) {
+                alert('Error: ' + e.message);
             }
         }
         
-        function mostrarResultados(resultados, cotaInicial) {
+        function mostrarResultados(res, cotaI) {
             document.getElementById('resultados-panel').style.display = 'block';
-            
-            let suma_v_mas = 0;
-            let suma_v_menos = 0;
-            let suma_desnivel = 0;
-            
-            let tablaHTML = `
+            let sumaV = 0, sumaMenos = 0, sumaDesnivel = 0;
+            let html = `
                 <table class="tabla-resultados">
-                    <thead>
-                        <tr>
-                            <th>Est.</th>
-                            <th>Distancia (m)</th>
-                            <th>V+ (m)</th>
-                            <th>V- (m)</th>
-                            <th>V Inter. (m)</th>
-                            <th>Desnivel (m)</th>
-                            <th>Cota (m)</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Est.</th><th>Dist.</th><th>V+</th><th>V-</th><th>V Int.</th><th>Desnivel</th><th>Cota</th></tr></thead>
                     <tbody>
                         <tr style="background: #d4edda;">
-                            <td><strong>BM</strong></td>
-                            <td>0.000</td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td><strong>${cotaInicial.toFixed(3)}</strong></td>
+                            <td><strong>BM</strong></td><td>0.000</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                            <td><strong>${cotaI.toFixed(3)}</strong></td>
                         </tr>
             `;
             
-            resultados.forEach(r => {
-                suma_v_mas += r.v_mas;
-                suma_v_menos += r.v_menos;
-                suma_desnivel += r.desnivel;
-                
-                const vInter = r.v_intermedia ? r.v_intermedia.toFixed(3) : '-';
-                
-                tablaHTML += `
+            res.forEach(r => {
+                sumaV += r.v_mas; sumaMenos += r.v_menos; sumaDesnivel += r.desnivel;
+                const vInt = r.v_intermedia ? r.v_intermedia.toFixed(3) : '-';
+                html += `
                     <tr>
-                        <td><strong>${r.estacion}</strong></td>
-                        <td>${r.distancia.toFixed(1)}</td>
-                        <td>${r.v_mas.toFixed(3)}</td>
-                        <td>${r.v_menos.toFixed(3)}</td>
-                        <td>${vInter}</td>
+                        <td><strong>${r.estacion}</strong></td><td>${r.distancia.toFixed(1)}</td>
+                        <td>${r.v_mas.toFixed(3)}</td><td>${r.v_menos.toFixed(3)}</td><td>${vInt}</td>
                         <td style="color: ${r.desnivel >= 0 ? '#27ae60' : '#e74c3c'};">
                             ${r.desnivel >= 0 ? '+' : ''}${r.desnivel.toFixed(3)}
                         </td>
@@ -386,55 +205,30 @@
                 `;
             });
             
-            const cotaFinal = resultados[resultados.length - 1].cota;
-            const desnivelTotal = cotaFinal - cotaInicial;
-            
-            tablaHTML += `
+            const cotaF = res[res.length - 1].cota;
+            html += `
                     </tbody>
                     <tfoot style="background: #3498db; color: white; font-weight: bold;">
-                        <tr>
-                            <td>SUMA</td>
-                            <td>-</td>
-                            <td>${suma_v_mas.toFixed(3)}</td>
-                            <td>${suma_v_menos.toFixed(3)}</td>
-                            <td>-</td>
-                            <td>${suma_desnivel.toFixed(3)}</td>
-                            <td>${cotaFinal.toFixed(3)}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="6">DESNIVEL TOTAL</td>
-                            <td>${desnivelTotal >= 0 ? '+' : ''}${desnivelTotal.toFixed(3)} m</td>
-                        </tr>
+                        <tr><td>SUMA</td><td>-</td><td>${sumaV.toFixed(3)}</td><td>${sumaMenos.toFixed(3)}</td>
+                        <td>-</td><td>${sumaDesnivel.toFixed(3)}</td><td>${cotaF.toFixed(3)}</td></tr>
+                        <tr><td colspan="6">DESNIVEL TOTAL</td>
+                        <td>${(cotaF - cotaI >= 0 ? '+' : '')}${(cotaF - cotaI).toFixed(3)} m</td></tr>
                     </tfoot>
                 </table>
             `;
-            
-            document.getElementById('tabla-container').innerHTML = tablaHTML;
+            document.getElementById('tabla-container').innerHTML = html;
         }
         
-        function dibujarGrafico(resultados, cotaInicial) {
+        function dibujarGrafico(res, cotaI) {
             document.getElementById('grafico-panel').style.display = 'block';
+            const dists = [0], cotas = [cotaI], labels = ['BM'];
+            res.forEach(r => { dists.push(r.distancia); cotas.push(r.cota); labels.push(`Est. ${r.estacion}`); });
             
-            const distancias = [0];
-            const cotas = [cotaInicial];
-            const labels = ['BM'];
-            
-            resultados.forEach(r => {
-                distancias.push(r.distancia);
-                cotas.push(r.cota);
-                labels.push(`Est. ${r.estacion}`);
-            });
-            
-            const ctx = document.getElementById('myChart');
-            
-            if (myChart) {
-                myChart.destroy();
-            }
-            
-            myChart = new Chart(ctx, {
+            if (myChart) myChart.destroy();
+            myChart = new Chart(document.getElementById('myChart'), {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels,
                     datasets: [{
                         label: 'Cota (m)',
                         data: cotas,
@@ -444,7 +238,6 @@
                         fill: true,
                         tension: 0.1,
                         pointRadius: 6,
-                        pointHoverRadius: 8,
                         pointBackgroundColor: '#2c3e50',
                         pointBorderColor: '#3498db',
                         pointBorderWidth: 2
@@ -454,60 +247,18 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: { size: 14, weight: 'bold' }
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Perfil Longitudinal de Nivelación',
-                            font: { size: 18, weight: 'bold' }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `Cota: ${context.parsed.y.toFixed(3)} m`;
-                                },
-                                afterLabel: function(context) {
-                                    return `Distancia: ${distancias[context.dataIndex].toFixed(1)} m`;
-                                }
-                            }
-                        }
+                        legend: { display: true, position: 'top' },
+                        title: { display: true, text: 'Perfil Longitudinal', font: { size: 18, weight: 'bold' } }
                     },
                     scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Estaciones',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            grid: { display: true, color: 'rgba(0,0,0,0.1)' }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Cota (m)',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            grid: { display: true, color: 'rgba(0,0,0,0.1)' },
-                            ticks: {
-                                callback: function(value) {
-                                    return value.toFixed(2) + ' m';
-                                }
-                            }
-                        }
+                        x: { title: { display: true, text: 'Estaciones', font: { size: 14, weight: 'bold' } } },
+                        y: { title: { display: true, text: 'Cota (m)', font: { size: 14, weight: 'bold' } } }
                     }
                 }
             });
         }
         
-        // Agregar 3 puntos por defecto
-        for (let i = 0; i < 3; i++) {
-            agregarPunto();
-        }
+        for (let i = 0; i < 3; i++) agregarPunto();
     </script>
 </body>
 </html>

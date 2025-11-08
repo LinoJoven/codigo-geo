@@ -56,6 +56,7 @@
             cursor: pointer;
             text-decoration: none;
             color: inherit;
+            position: relative;
         }
 
         .card:hover {
@@ -82,12 +83,34 @@
             line-height: 1.6;
         }
 
-        .construccion {
-            opacity: 0.6;
+        .badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
         }
 
-        .construccion .card-title::after {
-            content: " 🚧";
+        .badge.nuevo {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            font-size: 0.9em;
+            opacity: 0.8;
         }
 
         @media (max-width: 768px) {
@@ -104,14 +127,14 @@
 <body>
     <div class="container">
         <h1>🌍 Geodesia Geométrica Avanzada</h1>
-        <p class="subtitle">Herramientas de cálculo geodésico de precisión</p>
+        <p class="subtitle">Herramientas de cálculo geodésico de precisión - WGS84</p>
         
         <div class="grid">
             <a href="/apartado/1" class="card">
                 <div class="card-number">01</div>
                 <div class="card-title">Transformación de Latitudes</div>
                 <div class="card-description">
-                    Conversión entre latitud geodésica (φ), paramétrica (θ) y geocéntrica (ω)
+                    Conversión entre latitud geodésica (φ), paramétrica (θ) y geocéntrica (ω) con visualización 3D interactiva
                 </div>
             </a>
 
@@ -119,23 +142,25 @@
                 <div class="card-number">02</div>
                 <div class="card-title">Coordenadas con Longitud</div>
                 <div class="card-description">
-                    Transformación de (θ,λ), (φ,λ) y (ω,λ) a coordenadas cartesianas (X,Y,Z)
+                    Transformación de (θ,λ), (φ,λ) y (ω,λ) a coordenadas cartesianas (X,Y,Z) en el elipsoide
                 </div>
             </a>
 
             <a href="/apartado/3" class="card">
+                <span class="badge">ACTUALIZADO</span>
                 <div class="card-number">03</div>
                 <div class="card-title">Coordenadas con Altura</div>
                 <div class="card-description">
-                    Conversión de (φ,λ,h) a coordenadas cartesianas considerando altura elipsoidal
+                    Problema directo (φ,λ,h)→(X,Y,Z) e inverso (X,Y,Z)→(φ,λ,h) con algoritmo de Bowring
                 </div>
             </a>
 
             <a href="/apartado/4" class="card">
+                <span class="badge nuevo">NUEVO</span>
                 <div class="card-number">04</div>
-                <div class="card-title">Problema Inverso</div>
+                <div class="card-title">Coordenadas sobre Elipsoide</div>
                 <div class="card-description">
-                    Transformación de coordenadas cartesianas (X,Y,Z) a geodésicas (φ,λ,h)
+                    Cálculo de (X,Y,Z) con h=0 conociendo φ, θ o ω y la longitud λ
                 </div>
             </a>
 
@@ -143,7 +168,7 @@
                 <div class="card-number">05</div>
                 <div class="card-title">Arco de Meridiano</div>
                 <div class="card-description">
-                    Cálculo de longitud de arco de meridiano entre dos latitudes
+                    Cálculo de longitud de arco de meridiano entre dos latitudes usando series de Fourier
                 </div>
             </a>
 
@@ -151,7 +176,7 @@
                 <div class="card-number">06</div>
                 <div class="card-title">Arco de Paralelo</div>
                 <div class="card-description">
-                    Cálculo de longitud de arco de paralelo entre dos longitudes
+                    Cálculo de longitud de arco de paralelo entre dos longitudes en la misma latitud
                 </div>
             </a>
 
@@ -159,25 +184,24 @@
                 <div class="card-number">07</div>
                 <div class="card-title">Nivelación Diferencial</div>
                 <div class="card-description">
-                    Cálculo de nivelación con vistas adelante, atrás e intermedias
+                    Cálculo de nivelación con vistas adelante, atrás e intermedias con perfil longitudinal
                 </div>
             </a>
 
-            <a href="/apartado/8" class="card">
-                <div class="card-number">08</div>
-                <div class="card-title">Transformación de Datums</div>
-                <div class="card-description">
-                    Conversión entre Datum Bogotá, WGS84 y GRS80
-                </div>
-            </a>
-
-            <a href="/apartado/9" class="card construccion">
+            <a href="/apartado/9" class="card">
+                <span class="badge nuevo">NUEVO</span>
                 <div class="card-number">09</div>
-                <div class="card-title">En Construcción</div>
+                <div class="card-title">Área del Cuadrilátero</div>
                 <div class="card-description">
-                    Próximamente: Nuevas herramientas geodésicas
+                    Cálculo de área geodésica entre 4 puntos usando proyección estereográfica y Shoelace formula
                 </div>
             </a>
+        </div>
+
+        <div class="footer">
+            <p>✅ Validaciones geodésicas estrictas (DMS, rangos, coordenadas)</p>
+            <p>🌐 Basado en WGS84 y geodesia geométrica clásica</p>
+            <p>📐 Desarrollado con precisión científica</p>
         </div>
     </div>
 </body>

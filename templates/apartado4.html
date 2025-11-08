@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apartado 4 - Problema Inverso</title>
+    <title>Apartado 4 - Coordenadas sobre Elipsoide (h=0)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
@@ -27,7 +27,8 @@
         .panel { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .form-group { margin-bottom: 20px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
-        input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
+        input, select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
+        .coords-input { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         button {
             width: 100%; padding: 15px;
             background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%);
@@ -43,7 +44,7 @@
         .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; }
         .controls-info { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         small { display: block; margin-top: 5px; color: #666; font-size: 0.85em; }
-        .ejemplo { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 10px; }
+        .info-box { background: #fff3cd; border: 2px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -51,40 +52,66 @@
     <a href="/" class="btn-back">← Volver</a>
     
     <div class="header">
-        <h1>🔄 Problema Inverso</h1>
-        <p>Transformación (X, Y, Z) → (φ, λ, h)</p>
+        <h1>🌍 Coordenadas sobre el Elipsoide</h1>
+        <p>Transformación con h = 0 (punto sobre la superficie)</p>
     </div>
 
     <div class="container">
         <div class="panel">
-            <h2>Coordenadas Cartesianas</h2>
+            <h2>Datos de Entrada</h2>
+            
+            <div class="info-box">
+                <h4>ℹ️ Sobre este cálculo</h4>
+                <p>Calcula coordenadas cartesianas (X,Y,Z) para un punto <strong>directamente sobre el elipsoide</strong> (h=0), conociendo cualquier tipo de latitud y la longitud.</p>
+            </div>
             
             <div class="form-group">
-                <label>X (metros):</label>
-                <input type="number" id="X" placeholder="Ej: 1563037.480" step="0.001">
-                <small>Coordenada X geocéntrica</small>
+                <label>Tipo de Latitud:</label>
+                <select id="tipo_entrada">
+                    <option value="">Seleccione...</option>
+                    <option value="phi">φ (Latitud Geodésica)</option>
+                    <option value="theta">θ (Latitud Paramétrica)</option>
+                    <option value="omega">ω (Latitud Geocéntrica)</option>
+                </select>
             </div>
 
             <div class="form-group">
-                <label>Y (metros):</label>
-                <input type="number" id="Y" placeholder="Ej: -6247808.280" step="0.001">
-                <small>Coordenada Y geocéntrica</small>
+                <label>Latitud (φ/θ/ω):</label>
+                <div class="coords-input">
+                    <div>
+                        <input type="number" id="lat_grados" placeholder="Grados" min="-90" max="90">
+                        <small>Grados (-90 a 90)</small>
+                    </div>
+                    <div>
+                        <input type="number" id="lat_minutos" placeholder="0" min="0" max="59" value="0">
+                        <small>Minutos (0-59)</small>
+                    </div>
+                    <div>
+                        <input type="number" id="lat_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                        <small>Segundos</small>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">
-                <label>Z (metros):</label>
-                <input type="number" id="Z" placeholder="Ej: 467598.060" step="0.001">
-                <small>Coordenada Z geocéntrica</small>
+                <label>Longitud (λ):</label>
+                <div class="coords-input">
+                    <div>
+                        <input type="number" id="lon_grados" placeholder="Grados" min="-180" max="180">
+                        <small>Grados (-180 a 180)</small>
+                    </div>
+                    <div>
+                        <input type="number" id="lon_minutos" placeholder="0" min="0" max="59" value="0">
+                        <small>Minutos (0-59)</small>
+                    </div>
+                    <div>
+                        <input type="number" id="lon_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                        <small>Segundos</small>
+                    </div>
+                </div>
             </div>
 
-            <div class="ejemplo">
-                <h4>💡 Ejemplo - Bogotá:</h4>
-                <p><strong>X:</strong> 1,563,037.480 m</p>
-                <p><strong>Y:</strong> -6,247,808.280 m</p>
-                <p><strong>Z:</strong> 467,598.060 m</p>
-            </div>
-
-            <button onclick="calcular()">Calcular Coordenadas Geodésicas</button>
+            <button onclick="calcular()">Calcular Coordenadas (h=0)</button>
             <div id="resultados"></div>
         </div>
 
@@ -95,6 +122,11 @@
                 <p><strong>Izquierdo:</strong> Rotar | <strong>Rueda:</strong> Zoom | <strong>Derecho:</strong> Mover</p>
             </div>
             <div id="canvas-container"></div>
+            <div style="margin-top: 15px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+                <p><strong>🔴 Punto Rojo:</strong> Coordenada sobre el elipsoide (h=0)</p>
+                <p><strong>🟢 Línea Verde:</strong> Meridiano del punto</p>
+                <p><strong>🟡 Línea Amarilla:</strong> Paralelo del punto</p>
+            </div>
         </div>
     </div>
 
@@ -151,42 +183,98 @@
             renderer.render(scene, camera);
         }
         
-        function addPoint(x, y, z) {
+        function drawPoint(x, y, z, lat_dec, lon_dec) {
             scene.children = scene.children.filter(c => 
                 !(c.type === 'Mesh' && c.geometry.type === 'SphereGeometry' && c.geometry.parameters.radius < 500000) &&
                 c.type !== 'Line'
             );
             
+            // Punto principal
             const p = new THREE.Mesh(
                 new THREE.SphereGeometry(300000, 32, 32),
-                new THREE.MeshBasicMaterial({ color: 0xff4444 })
+                new THREE.MeshBasicMaterial({ color: 0xff0000 })
             );
             p.position.set(x, z, y);
             scene.add(p);
             
-            const line = new THREE.Line(
+            // Línea desde origen
+            scene.add(new THREE.Line(
                 new THREE.BufferGeometry().setFromPoints([
                     new THREE.Vector3(0, 0, 0),
                     new THREE.Vector3(x, z, y)
                 ]),
-                new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 3 })
-            );
-            scene.add(line);
+                new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 })
+            ));
+            
+            // Meridiano
+            const meridianPts = [];
+            const lambda = lon_dec * Math.PI / 180;
+            for (let lat = -90; lat <= 90; lat += 2) {
+                const phi = lat * Math.PI / 180;
+                const N = 6378137 / Math.sqrt(1 - 0.00669438002290 * Math.sin(phi)**2);
+                const X = N * Math.cos(phi) * Math.cos(lambda);
+                const Y = N * Math.cos(phi) * Math.sin(lambda);
+                const Z = N * (1 - 0.00669438002290) * Math.sin(phi);
+                meridianPts.push(new THREE.Vector3(X, Z, Y));
+            }
+            scene.add(new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(meridianPts),
+                new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
+            ));
+            
+            // Paralelo
+            const paraleloPts = [];
+            const phi = lat_dec * Math.PI / 180;
+            const N = 6378137 / Math.sqrt(1 - 0.00669438002290 * Math.sin(phi)**2);
+            for (let lon = 0; lon <= 360; lon += 2) {
+                const lam = lon * Math.PI / 180;
+                const X = N * Math.cos(phi) * Math.cos(lam);
+                const Y = N * Math.cos(phi) * Math.sin(lam);
+                const Z = N * (1 - 0.00669438002290) * Math.sin(phi);
+                paraleloPts.push(new THREE.Vector3(X, Z, Y));
+            }
+            scene.add(new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(paraleloPts),
+                new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 })
+            ));
         }
         
         async function calcular() {
-            const X = parseFloat(document.getElementById('X').value);
-            const Y = parseFloat(document.getElementById('Y').value);
-            const Z = parseFloat(document.getElementById('Z').value);
+            const tipo = document.getElementById('tipo_entrada').value;
+            const lat_g = parseFloat(document.getElementById('lat_grados').value);
+            const lat_m = parseFloat(document.getElementById('lat_minutos').value) || 0;
+            const lat_s = parseFloat(document.getElementById('lat_segundos').value) || 0;
+            const lon_g = parseFloat(document.getElementById('lon_grados').value);
+            const lon_m = parseFloat(document.getElementById('lon_minutos').value) || 0;
+            const lon_s = parseFloat(document.getElementById('lon_segundos').value) || 0;
             
-            if (isNaN(X) || isNaN(Y) || isNaN(Z)) {
-                alert('Complete todas las coordenadas');
+            if (!tipo) {
+                alert('Seleccione el tipo de latitud');
+                return;
+            }
+            if (isNaN(lat_g) || isNaN(lon_g)) {
+                alert('Complete los campos requeridos');
                 return;
             }
             
-            const dist = Math.sqrt(X*X + Y*Y + Z*Z);
-            if (dist < 6306752 || dist > 6428137) {
-                alert(`Coordenadas fuera del rango terrestre.\nDistancia: ${(dist/1000).toFixed(2)} km\nRango válido: 6,306-6,428 km`);
+            if (lat_m < 0 || lat_m >= 60 || lon_m < 0 || lon_m >= 60) {
+                alert('Minutos: 0-59');
+                return;
+            }
+            if (lat_s < 0 || lat_s >= 60 || lon_s < 0 || lon_s >= 60) {
+                alert('Segundos: 0-59.999');
+                return;
+            }
+            
+            const lat_dec = lat_g + lat_m/60 + lat_s/3600;
+            const lon_dec = lon_g + lon_m/60 + lon_s/3600;
+            
+            if (lat_dec < -90 || lat_dec > 90) {
+                alert('Latitud: -90° a 90°');
+                return;
+            }
+            if (lon_dec < -180 || lon_dec > 180) {
+                alert('Longitud: -180° a 180°');
                 return;
             }
             
@@ -194,41 +282,42 @@
                 const res = await fetch('/api/apartado4', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ X, Y, Z })
+                    body: JSON.stringify({
+                        tipo_entrada: tipo,
+                        lat_grados: lat_g, lat_minutos: lat_m, lat_segundos: lat_s,
+                        lon_grados: lon_g, lon_minutos: lon_m, lon_segundos: lon_s
+                    })
                 });
                 const data = await res.json();
                 
                 if (data.success) {
-                    const phi_dms = data.phi.dms;
-                    const lam_dms = data.lambda.dms;
-                    const phi_sign = phi_dms[0] >= 0 ? 'N' : 'S';
-                    const lam_sign = lam_dms[0] >= 0 ? 'E' : 'W';
+                    const tipoNombre = {
+                        'phi': 'φ (Geodésica)',
+                        'theta': 'θ (Paramétrica)',
+                        'omega': 'ω (Geocéntrica)'
+                    }[tipo];
                     
                     document.getElementById('resultados').innerHTML = `
                         <div class="resultados">
-                            <h3>Coordenadas Geodésicas</h3>
+                            <h3>✅ Coordenadas Cartesianas (h=0)</h3>
                             <div class="resultado-item">
-                                <h4>φ (Latitud)</h4>
-                                <p><strong>Decimal:</strong> ${data.phi.decimal.toFixed(10)}°</p>
-                                <p><strong>DMS:</strong> ${Math.abs(phi_dms[0])}° ${phi_dms[1]}' ${phi_dms[2].toFixed(4)}" ${phi_sign}</p>
+                                <p><strong>Tipo entrada:</strong> ${tipoNombre}</p>
+                                <p><strong>Latitud geodésica equivalente:</strong> ${data.lat_geodesica.toFixed(8)}°</p>
                             </div>
                             <div class="resultado-item">
-                                <h4>λ (Longitud)</h4>
-                                <p><strong>Decimal:</strong> ${data.lambda.decimal.toFixed(10)}°</p>
-                                <p><strong>DMS:</strong> ${Math.abs(lam_dms[0])}° ${lam_dms[1]}' ${lam_dms[2].toFixed(4)}" ${lam_sign}</p>
-                            </div>
-                            <div class="resultado-item">
-                                <h4>h (Altura)</h4>
-                                <p><strong>Altura:</strong> ${data.h.toFixed(3)} m</p>
+                                <p><strong>X:</strong> ${data.X.toFixed(3)} m</p>
+                                <p><strong>Y:</strong> ${data.Y.toFixed(3)} m</p>
+                                <p><strong>Z:</strong> ${data.Z.toFixed(3)} m</p>
+                                <p><strong>Distancia desde origen:</strong> ${Math.sqrt(data.X**2 + data.Y**2 + data.Z**2).toFixed(3)} m</p>
                             </div>
                         </div>
                     `;
-                    addPoint(X, Y, Z);
+                    drawPoint(data.X, data.Y, data.Z, data.lat_geodesica, lon_dec);
                 } else {
-                    document.getElementById('resultados').innerHTML = `<div class="error">${data.error}</div>`;
+                    document.getElementById('resultados').innerHTML = `<div class="error">❌ ${data.error}</div>`;
                 }
             } catch (e) {
-                document.getElementById('resultados').innerHTML = `<div class="error">${e.message}</div>`;
+                document.getElementById('resultados').innerHTML = `<div class="error">❌ ${e.message}</div>`;
             }
         }
         

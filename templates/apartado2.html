@@ -5,121 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apartado 2 - Coordenadas con Longitud</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
         .btn-back {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background: white;
-            color: #0f2027;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: transform 0.2s;
-            z-index: 100;
+            position: fixed; top: 20px; left: 20px; padding: 10px 20px;
+            background: white; color: #0f2027; text-decoration: none;
+            border-radius: 5px; font-weight: bold; z-index: 100;
         }
         .btn-back:hover { transform: scale(1.05); }
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            max-width: 1400px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
         }
-        .panel {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        .panel { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .form-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        select, input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-        }
-        .coords-input {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-        }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        select, input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
+        .coords-input { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         button {
-            width: 100%;
-            padding: 15px;
+            width: 100%; padding: 15px;
             background: linear-gradient(135deg, #2c5364 0%, #203a43 100%);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
+            color: white; border: none; border-radius: 5px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
         }
         button:hover { transform: scale(1.02); }
-        .resultados {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
+        .resultados { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
         .resultado-item {
-            margin-bottom: 15px;
-            padding: 15px;
-            background: white;
-            border-left: 4px solid #2c5364;
-            border-radius: 5px;
+            margin-bottom: 15px; padding: 15px;
+            background: white; border-left: 4px solid #2c5364; border-radius: 5px;
         }
-        #canvas-container {
-            width: 100%;
-            height: 600px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        .controls-info {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        .controls-info h4 {
-            color: #1976d2;
-            margin-bottom: 8px;
-        }
-        @media (max-width: 1024px) {
-            .container { grid-template-columns: 1fr; }
-        }
+        #canvas-container { width: 100%; height: 600px; border-radius: 10px; overflow: hidden; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .controls-info { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        small { display: block; margin-top: 5px; color: #666; font-size: 0.85em; }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -148,15 +75,15 @@
                 <label>Latitud (θ, φ, o ω):</label>
                 <div class="coords-input">
                     <div>
-                        <input type="number" id="lat_grados" placeholder="Grados" step="any">
-                        <small>Grados</small>
+                        <input type="number" id="lat_grados" placeholder="Grados" min="-90" max="90">
+                        <small>Grados (-90 a 90)</small>
                     </div>
                     <div>
-                        <input type="number" id="lat_minutos" placeholder="Minutos" step="any" min="0" max="59">
-                        <small>Minutos</small>
+                        <input type="number" id="lat_minutos" placeholder="0" min="0" max="59" value="0">
+                        <small>Minutos (0-59)</small>
                     </div>
                     <div>
-                        <input type="number" id="lat_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <input type="number" id="lat_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
                         <small>Segundos</small>
                     </div>
                 </div>
@@ -166,50 +93,45 @@
                 <label>Longitud (λ):</label>
                 <div class="coords-input">
                     <div>
-                        <input type="number" id="lon_grados" placeholder="Grados" step="any">
-                        <small>Grados</small>
+                        <input type="number" id="lon_grados" placeholder="Grados" min="-180" max="180">
+                        <small>Grados (-180 a 180)</small>
                     </div>
                     <div>
-                        <input type="number" id="lon_minutos" placeholder="Minutos" step="any" min="0" max="59">
+                        <input type="number" id="lon_minutos" placeholder="0" min="0" max="59" value="0">
                         <small>Minutos</small>
                     </div>
                     <div>
-                        <input type="number" id="lon_segundos" placeholder="Segundos" step="any" min="0" max="59.999">
+                        <input type="number" id="lon_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
                         <small>Segundos</small>
                     </div>
                 </div>
             </div>
 
             <button onclick="calcular()">Calcular Coordenadas</button>
-
             <div id="resultados"></div>
         </div>
 
         <div class="panel">
             <h2>Visualización 3D</h2>
             <div class="controls-info">
-                <h4>🎮 Controles Interactivos</h4>
-                <p><strong>Click izquierdo + arrastrar:</strong> Rotar</p>
-                <p><strong>Rueda del mouse:</strong> Zoom</p>
-                <p><strong>Click derecho + arrastrar:</strong> Mover</p>
+                <h4>🎮 Controles</h4>
+                <p><strong>Izquierdo:</strong> Rotar | <strong>Rueda:</strong> Zoom | <strong>Derecho:</strong> Mover</p>
             </div>
             <div id="canvas-container"></div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script>
-        let scene, camera, renderer, controls, ellipsoid, point, meridian, parallel;
+        let scene, camera, renderer, controls;
         
-        function initThree() {
+        function init3D() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0a0a);
-            
             camera = new THREE.PerspectiveCamera(75, 1, 0.1, 50000000);
             camera.position.set(15000000, 10000000, 15000000);
             
-            renderer = new THREE.WebGLRenderer({ antialias: true });
             const container = document.getElementById('canvas-container');
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             container.appendChild(renderer.domElement);
             
@@ -219,45 +141,31 @@
             controls.minDistance = 10000000;
             controls.maxDistance = 30000000;
             
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(10000000, 10000000, 10000000);
+            scene.add(light);
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10000000, 10000000, 10000000);
-            scene.add(directionalLight);
+            const geo = new THREE.SphereGeometry(6378137, 64, 64);
+            geo.scale(1, 1, 6356752/6378137);
+            scene.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ 
+                color: 0x2c5364, transparent: true, opacity: 0.5, side: THREE.DoubleSide
+            })));
             
-            const a = 6378137;
-            const b = 6356752.314245;
-            const geometry = new THREE.SphereGeometry(a, 64, 64);
-            geometry.scale(1, 1, b/a);
-            
-            const material = new THREE.MeshPhongMaterial({
-                color: 0x2c5364,
-                transparent: true,
-                opacity: 0.5,
-                side: THREE.DoubleSide
-            });
-            
-            ellipsoid = new THREE.Mesh(geometry, material);
-            scene.add(ellipsoid);
-            
-            const wireframeGeometry = new THREE.SphereGeometry(a * 1.005, 32, 16);
-            wireframeGeometry.scale(1, 1, b/a);
-            const wireframeMaterial = new THREE.LineBasicMaterial({
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.15
-            });
-            const wireframe = new THREE.LineSegments(
-                new THREE.EdgesGeometry(wireframeGeometry),
-                wireframeMaterial
-            );
-            scene.add(wireframe);
-            
-            const axesHelper = new THREE.AxesHelper(10000000);
-            scene.add(axesHelper);
+            const wireGeo = new THREE.SphereGeometry(6378137*1.005, 32, 16);
+            wireGeo.scale(1, 1, 6356752/6378137);
+            scene.add(new THREE.LineSegments(
+                new THREE.EdgesGeometry(wireGeo),
+                new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })
+            ));
+            scene.add(new THREE.AxesHelper(10000000));
             
             animate();
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
         }
         
         function animate() {
@@ -266,161 +174,99 @@
             renderer.render(scene, camera);
         }
         
-        function addPoint(x, y, z, lat_decimal, lon_decimal) {
-            // Limpiar objetos previos
-            [point, meridian, parallel].forEach(obj => {
-                if (obj) scene.remove(obj);
-            });
+        function addPoint(x, y, z, lat, lon) {
+            scene.children = scene.children.filter(c => 
+                !(c.type === 'Mesh' && c.geometry.type === 'SphereGeometry' && c.geometry.parameters.radius < 500000) &&
+                c.type !== 'Line' && c.type !== 'Sprite'
+            );
             
-            scene.children.filter(child => child.type === 'Sprite').forEach(sprite => {
-                scene.remove(sprite);
-            });
+            const p = new THREE.Mesh(
+                new THREE.SphereGeometry(250000, 32, 32),
+                new THREE.MeshBasicMaterial({ color: 0xff4444 })
+            );
+            p.position.set(x, z, y);
+            scene.add(p);
             
-            // Punto principal
-            const geometry = new THREE.SphereGeometry(250000, 32, 32);
-            const material = new THREE.MeshBasicMaterial({ color: 0xff4444 });
-            point = new THREE.Mesh(geometry, material);
-            point.position.set(x, z, y);
-            scene.add(point);
+            scene.add(new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(x, z, y)
+                ]),
+                new THREE.LineBasicMaterial({ color: 0xff4444, linewidth: 2 })
+            ));
             
-            // Línea desde el origen
-            const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(0, 0, 0),
-                new THREE.Vector3(x, z, y)
-            ]);
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff4444, linewidth: 2 });
-            const line = new THREE.Line(lineGeometry, lineMaterial);
-            scene.add(line);
-            
-            // Dibujar meridiano
-            drawMeridian(lon_decimal);
-            
-            // Dibujar paralelo
-            drawParallel(lat_decimal);
-            
-            // Etiqueta
-            createTextSprite('P(' + lat_decimal.toFixed(2) + '°, ' + lon_decimal.toFixed(2) + '°)', x, z + 800000, y);
+            drawMeridian(lon);
+            drawParallel(lat);
         }
         
-        function drawMeridian(lon_decimal) {
-            const points = [];
-            const lambda = lon_decimal * Math.PI / 180;
-            const a = 6378137;
+        function drawMeridian(lon) {
+            const pts = [];
+            const lam = lon * Math.PI / 180;
             const e2 = 0.00669438002290;
-            
             for (let lat = -90; lat <= 90; lat += 2) {
                 const phi = lat * Math.PI / 180;
-                const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
-                const x = N * Math.cos(phi) * Math.cos(lambda);
-                const y = N * Math.cos(phi) * Math.sin(lambda);
+                const N = 6378137 / Math.sqrt(1 - e2 * Math.sin(phi)**2);
+                const x = N * Math.cos(phi) * Math.cos(lam);
+                const y = N * Math.cos(phi) * Math.sin(lam);
                 const z = N * (1 - e2) * Math.sin(phi);
-                points.push(new THREE.Vector3(x, z, y));
+                pts.push(new THREE.Vector3(x, z, y));
             }
-            
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
-            meridian = new THREE.Line(geometry, material);
-            scene.add(meridian);
+            scene.add(new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(pts),
+                new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
+            ));
         }
         
-        function drawParallel(lat_decimal) {
-            const points = [];
-            const phi = lat_decimal * Math.PI / 180;
-            const a = 6378137;
+        function drawParallel(lat) {
+            const pts = [];
+            const phi = lat * Math.PI / 180;
             const e2 = 0.00669438002290;
-            const N = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
-            
+            const N = 6378137 / Math.sqrt(1 - e2 * Math.sin(phi)**2);
             for (let lon = 0; lon <= 360; lon += 2) {
-                const lambda = lon * Math.PI / 180;
-                const x = N * Math.cos(phi) * Math.cos(lambda);
-                const y = N * Math.cos(phi) * Math.sin(lambda);
+                const lam = lon * Math.PI / 180;
+                const x = N * Math.cos(phi) * Math.cos(lam);
+                const y = N * Math.cos(phi) * Math.sin(lam);
                 const z = N * (1 - e2) * Math.sin(phi);
-                points.push(new THREE.Vector3(x, z, y));
+                pts.push(new THREE.Vector3(x, z, y));
             }
-            
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
-            parallel = new THREE.Line(geometry, material);
-            scene.add(parallel);
-        }
-        
-        function createTextSprite(message, x, y, z) {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 512;
-            canvas.height = 128;
-            
-            context.fillStyle = 'rgba(0, 0, 0, 0.8)';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            
-            context.font = 'Bold 32px Arial';
-            context.fillStyle = 'white';
-            context.textAlign = 'center';
-            context.fillText(message, 256, 70);
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-            const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.scale.set(2000000, 500000, 1);
-            sprite.position.set(x, y, z);
-            scene.add(sprite);
+            scene.add(new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints(pts),
+                new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 })
+            ));
         }
         
         async function calcular() {
-            const tipo_entrada = document.getElementById('tipo_entrada').value;
-            const lat_grados = parseFloat(document.getElementById('lat_grados').value);
-            const lat_minutos = parseFloat(document.getElementById('lat_minutos').value) || 0;
-            const lat_segundos = parseFloat(document.getElementById('lat_segundos').value) || 0;
-            const lon_grados = parseFloat(document.getElementById('lon_grados').value);
-            const lon_minutos = parseFloat(document.getElementById('lon_minutos').value) || 0;
-            const lon_segundos = parseFloat(document.getElementById('lon_segundos').value) || 0;
+            const tipo = document.getElementById('tipo_entrada').value;
+            const lat_g = parseFloat(document.getElementById('lat_grados').value);
+            const lat_m = parseFloat(document.getElementById('lat_minutos').value) || 0;
+            const lat_s = parseFloat(document.getElementById('lat_segundos').value) || 0;
+            const lon_g = parseFloat(document.getElementById('lon_grados').value);
+            const lon_m = parseFloat(document.getElementById('lon_minutos').value) || 0;
+            const lon_s = parseFloat(document.getElementById('lon_segundos').value) || 0;
             
-            if (!tipo_entrada) {
-                alert('Seleccione el tipo de coordenada');
-                return;
-            }
+            if (!tipo) { alert('Seleccione el tipo'); return; }
+            if (isNaN(lat_g) || isNaN(lon_g)) { alert('Complete los campos'); return; }
             
-            if (isNaN(lat_grados) || isNaN(lon_grados)) {
-                alert('Ingrese valores válidos');
-                return;
-            }
+            if (lat_m < 0 || lat_m >= 60 || lon_m < 0 || lon_m >= 60) { alert('Minutos: 0-59'); return; }
+            if (lat_s < 0 || lat_s >= 60 || lon_s < 0 || lon_s >= 60) { alert('Segundos: 0-59.999'); return; }
             
-            // Validaciones geodésicas
-            if (lat_minutos < 0 || lat_minutos >= 60 || lon_minutos < 0 || lon_minutos >= 60) {
-                alert('Los minutos deben estar entre 0 y 59');
-                return;
-            }
+            const lat_dec = lat_g + lat_m/60 + lat_s/3600;
+            const lon_dec = lon_g + lon_m/60 + lon_s/3600;
             
-            if (lat_segundos < 0 || lat_segundos >= 60 || lon_segundos < 0 || lon_segundos >= 60) {
-                alert('Los segundos deben estar entre 0 y 59.999');
-                return;
-            }
-            
-            const lat_decimal = lat_grados + lat_minutos/60 + lat_segundos/3600;
-            const lon_decimal = lon_grados + lon_minutos/60 + lon_segundos/3600;
-            
-            if (lat_decimal < -90 || lat_decimal > 90) {
-                alert('La latitud debe estar entre -90° y 90°');
-                return;
-            }
-            
-            if (lon_decimal < -180 || lon_decimal > 180) {
-                alert('La longitud debe estar entre -180° y 180°');
-                return;
-            }
+            if (lat_dec < -90 || lat_dec > 90) { alert('Latitud: -90° a 90°'); return; }
+            if (lon_dec < -180 || lon_dec > 180) { alert('Longitud: -180° a 180°'); return; }
             
             try {
-                const response = await fetch('/api/apartado2', {
+                const res = await fetch('/api/apartado2', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        tipo_entrada,
-                        lat_grados, lat_minutos, lat_segundos,
-                        lon_grados, lon_minutos, lon_segundos
+                        tipo_entrada: tipo,
+                        lat_grados: lat_g, lat_minutos: lat_m, lat_segundos: lat_s,
+                        lon_grados: lon_g, lon_minutos: lon_m, lon_segundos: lon_s
                     })
                 });
-                
-                const data = await response.json();
+                const data = await res.json();
                 
                 if (data.success) {
                     document.getElementById('resultados').innerHTML = `
@@ -433,27 +279,16 @@
                             </div>
                         </div>
                     `;
-                    addPoint(data.X, data.Y, data.Z, lat_decimal, lon_decimal);
+                    addPoint(data.X, data.Y, data.Z, lat_dec, lon_dec);
                 } else {
-                    document.getElementById('resultados').innerHTML = `
-                        <div class="error">Error: ${data.error}</div>
-                    `;
+                    document.getElementById('resultados').innerHTML = `<div class="error">${data.error}</div>`;
                 }
-            } catch (error) {
-                document.getElementById('resultados').innerHTML = `
-                    <div class="error">Error: ${error.message}</div>
-                `;
+            } catch (e) {
+                document.getElementById('resultados').innerHTML = `<div class="error">${e.message}</div>`;
             }
         }
         
-        window.addEventListener('resize', () => {
-            const container = document.getElementById('canvas-container');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        });
-        
-        initThree();
+        init3D();
     </script>
 </body>
 </html>

@@ -34,15 +34,12 @@
         }
         .coords-input { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         button {
-            width: 100%; padding: 15px;
+            width: 100%; padding: 15px; margin-top: 10px;
             background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
             color: white; border: none; border-radius: 5px;
             font-size: 1.1em; font-weight: bold; cursor: pointer;
         }
-        .resultados {
-            margin-top: 30px; padding: 20px;
-            background: #f8f9fa; border-radius: 10px;
-        }
+        .resultados { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
         .resultado-item {
             margin-bottom: 15px; padding: 15px;
             background: white; border-left: 4px solid #71b280; border-radius: 5px;
@@ -53,6 +50,19 @@
             background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;
         }
         small { display: block; margin-top: 5px; color: #666; font-size: 0.85em; }
+        .toggle-section {
+            display: flex; gap: 10px; margin-bottom: 20px;
+        }
+        .toggle-btn {
+            flex: 1; padding: 12px; border-radius: 8px; cursor: pointer;
+            border: 2px solid #134e5e; background: white; color: #134e5e;
+            font-weight: bold; transition: all 0.3s;
+        }
+        .toggle-btn.active {
+            background: #134e5e; color: white;
+        }
+        .section { display: none; }
+        .section.active { display: block; }
         @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -61,56 +71,94 @@
     
     <div class="header">
         <h1>⛰️ Coordenadas con Altura Elipsoidal</h1>
-        <p>Transformación (φ, λ, h) → (X, Y, Z)</p>
+        <p>Problema Directo e Inverso</p>
     </div>
 
     <div class="container">
         <div class="panel">
-            <h2>Datos de Entrada</h2>
-            
-            <div class="form-group">
-                <label>Latitud Geodésica (φ):</label>
-                <div class="coords-input">
-                    <div>
-                        <input type="number" id="phi_grados" placeholder="Grados" min="-90" max="90">
-                        <small>Grados (-90 a 90)</small>
-                    </div>
-                    <div>
-                        <input type="number" id="phi_minutos" placeholder="0" min="0" max="59" value="0">
-                        <small>Minutos (0-59)</small>
-                    </div>
-                    <div>
-                        <input type="number" id="phi_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
-                        <small>Segundos (0-59.999)</small>
-                    </div>
+            <div class="toggle-section">
+                <div class="toggle-btn active" onclick="cambiarModo('directo')">
+                    📍 Problema Directo<br><small>(φ,λ,h) → (X,Y,Z)</small>
+                </div>
+                <div class="toggle-btn" onclick="cambiarModo('inverso')">
+                    🔄 Problema Inverso<br><small>(X,Y,Z) → (φ,λ,h)</small>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Longitud (λ):</label>
-                <div class="coords-input">
-                    <div>
-                        <input type="number" id="lambda_grados" placeholder="Grados" min="-180" max="180">
-                        <small>Grados (-180 a 180)</small>
-                    </div>
-                    <div>
-                        <input type="number" id="lambda_minutos" placeholder="0" min="0" max="59" value="0">
-                        <small>Minutos (0-59)</small>
-                    </div>
-                    <div>
-                        <input type="number" id="lambda_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
-                        <small>Segundos (0-59.999)</small>
+            <!-- PROBLEMA DIRECTO -->
+            <div id="seccion-directo" class="section active">
+                <h2>Problema Directo</h2>
+                
+                <div class="form-group">
+                    <label>Latitud Geodésica (φ):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="phi_grados" placeholder="Grados" min="-90" max="90">
+                            <small>Grados (-90 a 90)</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos (0-59)</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos (0-59.999)</small>
+                        </div>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label>Longitud (λ):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="lambda_grados" placeholder="Grados" min="-180" max="180">
+                            <small>Grados (-180 a 180)</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos (0-59)</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos (0-59.999)</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Altura Elipsoidal (h) en metros:</label>
+                    <input type="number" id="h" placeholder="Ej: 2640" step="0.001">
+                    <small>Altura sobre el elipsoide (puede ser ±)</small>
+                </div>
+
+                <button onclick="calcularDirecto()">Calcular (φ,λ,h) → (X,Y,Z)</button>
             </div>
 
-            <div class="form-group">
-                <label>Altura Elipsoidal (h) en metros:</label>
-                <input type="number" id="h" placeholder="Ej: 2640" step="0.001">
-                <small>Altura sobre el elipsoide (puede ser ± )</small>
+            <!-- PROBLEMA INVERSO -->
+            <div id="seccion-inverso" class="section">
+                <h2>Problema Inverso</h2>
+                
+                <div class="form-group">
+                    <label>Coordenada X (metros):</label>
+                    <input type="number" id="X" placeholder="Ej: 1563037.480" step="0.001">
+                    <small>Coordenada X geocéntrica</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Coordenada Y (metros):</label>
+                    <input type="number" id="Y" placeholder="Ej: -6247808.280" step="0.001">
+                    <small>Coordenada Y geocéntrica</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Coordenada Z (metros):</label>
+                    <input type="number" id="Z" placeholder="Ej: 467598.060" step="0.001">
+                    <small>Coordenada Z geocéntrica</small>
+                </div>
+
+                <button onclick="calcularInverso()">Calcular (X,Y,Z) → (φ,λ,h)</button>
             </div>
 
-            <button onclick="calcular()">Calcular Coordenadas</button>
             <div id="resultados"></div>
         </div>
 
@@ -178,7 +226,20 @@
             renderer.render(scene, camera);
         }
         
-        function addPoint(x, y, z, xBase, yBase, zBase) {
+        function cambiarModo(modo) {
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            
+            if (modo === 'directo') {
+                document.querySelectorAll('.toggle-btn')[0].classList.add('active');
+                document.getElementById('seccion-directo').classList.add('active');
+            } else {
+                document.querySelectorAll('.toggle-btn')[1].classList.add('active');
+                document.getElementById('seccion-inverso').classList.add('active');
+            }
+        }
+        
+        function addPoint(x, y, z, xBase, yBase, zBase, conAltura = true) {
             scene.children = scene.children.filter(c => 
                 !(c.type === 'Mesh' && c.geometry.type === 'SphereGeometry' && c.geometry.parameters.radius < 500000) &&
                 c.type !== 'Line' && c.type !== 'Sprite'
@@ -189,22 +250,24 @@
             p.position.set(x, z, y);
             scene.add(p);
             
-            const pBase = new THREE.Mesh(new THREE.SphereGeometry(250000, 32, 32), 
-                new THREE.MeshBasicMaterial({ color: 0x4444ff }));
-            pBase.position.set(xBase, zBase, yBase);
-            scene.add(pBase);
-            
-            const line = new THREE.Line(
-                new THREE.BufferGeometry().setFromPoints([
-                    new THREE.Vector3(xBase, zBase, yBase),
-                    new THREE.Vector3(x, z, y)
-                ]),
-                new THREE.LineBasicMaterial({ color: 0x44ff44, linewidth: 2 })
-            );
-            scene.add(line);
+            if (conAltura && xBase !== undefined) {
+                const pBase = new THREE.Mesh(new THREE.SphereGeometry(250000, 32, 32), 
+                    new THREE.MeshBasicMaterial({ color: 0x4444ff }));
+                pBase.position.set(xBase, zBase, yBase);
+                scene.add(pBase);
+                
+                const line = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(xBase, zBase, yBase),
+                        new THREE.Vector3(x, z, y)
+                    ]),
+                    new THREE.LineBasicMaterial({ color: 0x44ff44, linewidth: 2 })
+                );
+                scene.add(line);
+            }
         }
         
-        async function calcular() {
+        async function calcularDirecto() {
             const phi_g = parseFloat(document.getElementById('phi_grados').value);
             const phi_m = parseFloat(document.getElementById('phi_minutos').value) || 0;
             const phi_s = parseFloat(document.getElementById('phi_segundos').value) || 0;
@@ -262,21 +325,73 @@
                     
                     document.getElementById('resultados').innerHTML = `
                         <div class="resultados">
-                            <h3>Coordenadas Cartesianas</h3>
+                            <h3>✅ Coordenadas Cartesianas</h3>
                             <div class="resultado-item">
                                 <p><strong>X:</strong> ${data.X.toFixed(3)} m</p>
                                 <p><strong>Y:</strong> ${data.Y.toFixed(3)} m</p>
                                 <p><strong>Z:</strong> ${data.Z.toFixed(3)} m</p>
-                                <p><strong>Distancia 3D:</strong> ${dist.toFixed(3)} m</p>
+                                <p><strong>Distancia 3D desde h=0:</strong> ${dist.toFixed(3)} m</p>
                             </div>
                         </div>
                     `;
                     addPoint(data.X, data.Y, data.Z, dataBase.X, dataBase.Y, dataBase.Z);
                 } else {
-                    document.getElementById('resultados').innerHTML = `<div class="error">${data.error}</div>`;
+                    document.getElementById('resultados').innerHTML = `<div class="error">❌ ${data.error}</div>`;
                 }
             } catch (e) {
-                document.getElementById('resultados').innerHTML = `<div class="error">${e.message}</div>`;
+                document.getElementById('resultados').innerHTML = `<div class="error">❌ ${e.message}</div>`;
+            }
+        }
+        
+        async function calcularInverso() {
+            const X = parseFloat(document.getElementById('X').value);
+            const Y = parseFloat(document.getElementById('Y').value);
+            const Z = parseFloat(document.getElementById('Z').value);
+            
+            if (isNaN(X) || isNaN(Y) || isNaN(Z)) {
+                alert('Complete todas las coordenadas');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/apartado3', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ X, Y, Z })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    const phi_dms = data.phi.dms;
+                    const lam_dms = data.lambda.dms;
+                    const phi_sign = phi_dms[0] >= 0 ? 'N' : 'S';
+                    const lam_sign = lam_dms[0] >= 0 ? 'E' : 'W';
+                    
+                    document.getElementById('resultados').innerHTML = `
+                        <div class="resultados">
+                            <h3>✅ Coordenadas Geodésicas</h3>
+                            <div class="resultado-item">
+                                <h4>φ (Latitud)</h4>
+                                <p><strong>Decimal:</strong> ${data.phi.decimal.toFixed(10)}°</p>
+                                <p><strong>DMS:</strong> ${Math.abs(phi_dms[0])}° ${phi_dms[1]}' ${phi_dms[2].toFixed(4)}" ${phi_sign}</p>
+                            </div>
+                            <div class="resultado-item">
+                                <h4>λ (Longitud)</h4>
+                                <p><strong>Decimal:</strong> ${data.lambda.decimal.toFixed(10)}°</p>
+                                <p><strong>DMS:</strong> ${Math.abs(lam_dms[0])}° ${lam_dms[1]}' ${lam_dms[2].toFixed(4)}" ${lam_sign}</p>
+                            </div>
+                            <div class="resultado-item">
+                                <h4>h (Altura)</h4>
+                                <p><strong>Altura:</strong> ${data.h.toFixed(3)} m</p>
+                            </div>
+                        </div>
+                    `;
+                    addPoint(X, Y, Z, undefined, undefined, undefined, false);
+                } else {
+                    document.getElementById('resultados').innerHTML = `<div class="error">❌ ${data.error}</div>`;
+                }
+            } catch (e) {
+                document.getElementById('resultados').innerHTML = `<div class="error">❌ ${e.message}</div>`;
             }
         }
         
