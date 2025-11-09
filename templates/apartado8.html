@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apartado 8 - Bisección Geodésica</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh; padding: 20px;
+        }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .btn-back {
+            position: fixed; top: 20px; left: 20px; padding: 10px 20px;
+            background: white; color: #11998e; text-decoration: none;
+            border-radius: 5px; font-weight: bold; z-index: 100;
+        }
+        .container {
+            max-width: 1600px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
+        }
+        .panel { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
+        input, select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
+        .coords-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .angle-input { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        button {
+            width: 100%; padding: 15px;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white; border: none; border-radius: 5px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer;
+        }
+        .resultados { margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; }
+        .resultado-item {
+            margin-bottom: 15px; padding: 15px;
+            background: white; border-left: 4px solid #11998e; border-radius: 5px;
+        }
+        #canvas-container { width: 100%; height: 700px; border-radius: 10px; background: white; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .info-box { background: #d1ecf1; border: 2px solid #17a2b8; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        small { display: block; margin-top: 5px; color: #666; font-size: 0.85em; }
+        .punto-section {
+            background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;
+            border-left: 4px solid #11998e;
+        }
+        .punto-section h3 { color: #11998e; margin-bottom: 15px; }
+        @media (max-width: 1400px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <a href="/" class="btn-back">← Volver</a>
+    
+    <div class="header">
+        <h1>🎯 Bisección Geodésica (Pothenot)</h1>
+        <p>Determinación de punto desconocido mediante ángulos desde puntos conocidos</p>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Configuración del Problema</h2>
+            
+            <div class="info-box">
+                <h4>ℹ️ Método de Bisección Geodésica</h4>
+                <p>Determina las coordenadas de un punto desconocido <strong>P</strong> observado desde dos puntos conocidos <strong>A</strong> y <strong>B</strong>.</p>
+                <p><strong>Datos necesarios:</strong></p>
+                <ul>
+                    <li>Coordenadas de A (Norte, Este)</li>
+                    <li>Coordenadas de B (Norte, Este)</li>
+                    <li>Ángulo α observado desde A hacia P</li>
+                    <li>Ángulo β observado desde B hacia P</li>
+                </ul>
+                <p><strong>⚠️ Los ángulos deben medirse desde el norte en sentido horario</strong></p>
+            </div>
+
+            <!-- PUNTO A -->
+            <div class="punto-section">
+                <h3>🔴 Punto A (Conocido)</h3>
+                <div class="coords-grid">
+                    <div>
+                        <label>Norte A (m):</label>
+                        <input type="number" id="norte_a" placeholder="Ej: 1000000.000" step="0.001">
+                        <small>Coordenada Norte en metros</small>
+                    </div>
+                    <div>
+                        <label>Este A (m):</label>
+                        <input type="number" id="este_a" placeholder="Ej: 500000.000" step="0.001">
+                        <small>Coordenada Este en metros</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ángulo α (desde A hacia P):</label>
+                    <div class="angle-input">
+                        <div>
+                            <input type="number" id="alpha_g" placeholder="Grados" min="0" max="360">
+                            <small>Grados (0-360)</small>
+                        </div>
+                        <div>
+                            <input type="number" id="alpha_m" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos (0-59)</small>
+                        </div>
+                        <div>
+                            <input type="number" id="alpha_s" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos (0-59.999)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PUNTO B -->
+            <div class="punto-section">
+                <h3>🔵 Punto B (Conocido)</h3>
+                <div class="coords-grid">
+                    <div>
+                        <label>Norte B (m):</label>
+                        <input type="number" id="norte_b" placeholder="Ej: 1000500.000" step="0.001">
+                        <small>Coordenada Norte en metros</small>
+                    </div>
+                    <div>
+                        <label>Este B (m):</label>
+                        <input type="number" id="este_b" placeholder="Ej: 500500.000" step="0.001">
+                        <small>Coordenada Este en metros</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ángulo β (desde B hacia P):</label>
+                    <div class="angle-input">
+                        <div>
+                            <input type="number" id="beta_g" placeholder="Grados" min="0" max="360">
+                            <small>Grados (0-360)</small>
+                        </div>
+                        <div>
+                            <input type="number" id="beta_m" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos (0-59)</small>
+                        </div>
+                        <div>
+                            <input type="number" id="beta_s" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos (0-59.999)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="calcular()">🔍 Resolver Bisección Geodésica</button>
+            <div id="resultados"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Diagrama del Problema</h2>
+            <div class="info-box" style="background: #fff3cd; border-color: #ffc107;">
+                <h4>📐 Interpretación del Diagrama</h4>
+                <p><strong>🔴 A:</strong> Punto conocido (rojo)</p>
+                <p><strong>🔵 B:</strong> Punto conocido (azul)</p>
+                <p><strong>🟢 P:</strong> Punto desconocido a determinar (verde)</p>
+                <p><strong>Líneas punteadas:</strong> Visuales desde A y B hacia P</p>
+            </div>
+            <canvas id="canvas-container"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas-container');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = 700;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        function drawDiagram(A, B, P) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Encontrar límites
+            const allX = [A.este, B.este, P.este];
+            const allY = [A.norte, B.norte, P.norte];
+            const minX = Math.min(...allX);
+            const maxX = Math.max(...allX);
+            const minY = Math.min(...allY);
+            const maxY = Math.max(...allY);
+            
+            const rangeX = maxX - minX || 1000;
+            const rangeY = maxY - minY || 1000;
+            const margin = 100;
+            
+            // Función de transformación
+            const toScreen = (este, norte) => {
+                const x = margin + ((este - minX) / rangeX) * (canvas.width - 2 * margin);
+                const y = canvas.height - margin - ((norte - minY) / rangeY) * (canvas.height - 2 * margin);
+                return { x, y };
+            };
+            
+            const screenA = toScreen(A.este, A.norte);
+            const screenB = toScreen(B.este, B.norte);
+            const screenP = toScreen(P.este, P.norte);
+            
+            // Grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 10; i++) {
+                const x = margin + (i / 10) * (canvas.width - 2 * margin);
+                const y = margin + (i / 10) * (canvas.height - 2 * margin);
+                ctx.beginPath();
+                ctx.moveTo(x, margin);
+                ctx.lineTo(x, canvas.height - margin);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(margin, y);
+                ctx.lineTo(canvas.width - margin, y);
+                ctx.stroke();
+            }
+            
+            // Ejes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, canvas.height - margin);
+            ctx.lineTo(canvas.width - margin, canvas.height - margin);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, canvas.height - margin);
+            ctx.stroke();
+            
+            // Etiquetas de ejes
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('Este →', canvas.width - margin - 50, canvas.height - margin + 30);
+            ctx.save();
+            ctx.translate(margin - 30, margin + 50);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Norte →', 0, 0);
+            ctx.restore();
+            
+            // Líneas A-P y B-P (punteadas)
+            ctx.setLineDash([10, 5]);
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(screenA.x, screenA.y);
+            ctx.lineTo(screenP.x, screenP.y);
+            ctx.stroke();
+            
+            ctx.strokeStyle = '#0000ff';
+            ctx.beginPath();
+            ctx.moveTo(screenB.x, screenB.y);
+            ctx.lineTo(screenP.x, screenP.y);
+            ctx.stroke();
+            
+            // Línea A-B (sólida)
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(screenA.x, screenA.y);
+            ctx.lineTo(screenB.x, screenB.y);
+            ctx.stroke();
+            
+            // Puntos
+            const drawPoint = (screen, color, label) => {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(screen.x, screen.y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText(label, screen.x + 15, screen.y - 10);
+            };
+            
+            drawPoint(screenA, '#ff0000', 'A');
+            drawPoint(screenB, '#0000ff', 'B');
+            drawPoint(screenP, '#00ff00', 'P');
+            
+            // Distancias
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Arial';
+            const midAP = { x: (screenA.x + screenP.x) / 2, y: (screenA.y + screenP.y) / 2 };
+            const midBP = { x: (screenB.x + screenP.x) / 2, y: (screenB.y + screenP.y) / 2 };
+            const midAB = { x: (screenA.x + screenB.x) / 2, y: (screenA.y + screenB.y) / 2 };
+            
+            const distAP = Math.sqrt((P.este - A.este)**2 + (P.norte - A.norte)**2);
+            const distBP = Math.sqrt((P.este - B.este)**2 + (P.norte - B.norte)**2);
+            const distAB = Math.sqrt((B.este - A.este)**2 + (B.norte - A.norte)**2);
+            
+            ctx.fillText(`${distAP.toFixed(2)} m`, midAP.x, midAP.y);
+            ctx.fillText(`${distBP.toFixed(2)} m`, midBP.x, midBP.y);
+            ctx.fillText(`${distAB.toFixed(2)} m`, midAB.x, midAB.y - 10);
+        }
+        
+        async function calcular() {
+            const norte_a = parseFloat(document.getElementById('norte_a').value);
+            const este_a = parseFloat(document.getElementById('este_a').value);
+            const norte_b = parseFloat(document.getElementById('norte_b').value);
+            const este_b = parseFloat(document.getElementById('este_b').value);
+            
+            const alpha_g = parseFloat(document.getElementById('alpha_g').value);
+            const alpha_m = parseFloat(document.getElementById('alpha_m').value) || 0;
+            const alpha_s = parseFloat(document.getElementById('alpha_s').value) || 0;
+            
+            const beta_g = parseFloat(document.getElementById('beta_g').value);
+            const beta_m = parseFloat(document.getElementById('beta_m').value) || 0;
+            const beta_s = parseFloat(document.getElementById('beta_s').value) || 0;
+            
+            // Validaciones
+            if (isNaN(norte_a) || isNaN(este_a) || isNaN(norte_b) || isNaN(este_b)) {
+                alert('Complete las coordenadas de los puntos A y B');
+                return;
+            }
+            
+            if (isNaN(alpha_g) || isNaN(beta_g)) {
+                alert('Complete los ángulos α y β');
+                return;
+            }
+            
+            if (alpha_m < 0 || alpha_m >= 60 || beta_m < 0 || beta_m >= 60) {
+                alert('Los minutos deben estar entre 0-59');
+                return;
+            }
+            
+            if (alpha_s < 0 || alpha_s >= 60 || beta_s < 0 || beta_s >= 60) {
+                alert('Los segundos deben estar entre 0-59.999');
+                return;
+            }
+            
+            const alpha_dec = alpha_g + alpha_m/60 + alpha_s/3600;
+            const beta_dec = beta_g + beta_m/60 + beta_s/3600;
+            
+            if (alpha_dec < 0 || alpha_dec >= 360) {
+                alert('El ángulo α debe estar entre 0° y 360°');
+                return;
+            }
+            
+            if (beta_dec < 0 || beta_dec >= 360) {
+                alert('El ángulo β debe estar entre 0° y 360°');
+                return;
+            }
+            
+            // Verificar que A y B no sean el mismo punto
+            if (Math.abs(norte_a - norte_b) < 0.001 && Math.abs(este_a - este_b) < 0.001) {
+                alert('Los puntos A y B deben ser diferentes');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/apartado8', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        norte_a, este_a,
+                        norte_b, este_b,
+                        alpha_grados: alpha_g, alpha_minutos: alpha_m, alpha_segundos: alpha_s,
+                        beta_grados: beta_g, beta_minutos: beta_m, beta_segundos: beta_s
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    const p = data.punto_p;
+                    const distAP = Math.sqrt((p.norte - norte_a)**2 + (p.este - este_a)**2);
+                    const distBP = Math.sqrt((p.norte - norte_b)**2 + (p.este - este_b)**2);
+                    const distAB = Math.sqrt((norte_b - norte_a)**2 + (este_b - este_a)**2);
+                    
+                    document.getElementById('resultados').innerHTML = `
+                        <div class="resultados">
+                            <h3>✅ Solución del Problema de Bisección</h3>
+                            
+                            <div class="resultado-item">
+                                <h4>📍 Coordenadas del Punto P (Desconocido)</h4>
+                                <p><strong>Norte:</strong> ${p.norte.toFixed(3)} m</p>
+                                <p><strong>Este:</strong> ${p.este.toFixed(3)} m</p>
+                            </div>
+                            
+                            <div class="resultado-item">
+                                <h4>📏 Distancias Calculadas</h4>
+                                <p><strong>Distancia A-P:</strong> ${distAP.toFixed(3)} m</p>
+                                <p><strong>Distancia B-P:</strong> ${distBP.toFixed(3)} m</p>
+                                <p><strong>Distancia A-B:</strong> ${distAB.toFixed(3)} m</p>
+                            </div>
+                            
+                            <div class="resultado-item">
+                                <h4>📐 Ángulos Verificados</h4>
+                                <p><strong>α (desde A):</strong> ${alpha_dec.toFixed(6)}°</p>
+                                <p><strong>β (desde B):</strong> ${beta_dec.toFixed(6)}°</p>
+                                <p><strong>Iteraciones:</strong> ${data.iteraciones}</p>
+                                <p><strong>Convergencia:</strong> ${data.error.toFixed(9)} m</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    drawDiagram(
+                        { norte: norte_a, este: este_a },
+                        { norte: norte_b, este: este_b },
+                        { norte: p.norte, este: p.este }
+                    );
+                } else {
+                    document.getElementById('resultados').innerHTML = `<div class="error">❌ ${data.error}</div>`;
+                }
+            } catch (e) {
+                document.getElementById('resultados').innerHTML = `<div class="error">❌ Error: ${e.message}</div>`;
+            }
+        }
+        
+        // Dibujar diagrama inicial vacío
+        ctx.fillStyle = '#999';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Complete los datos y presione "Resolver" para ver el diagrama', canvas.width/2, canvas.height/2);
+    </script>
+</body>
+</html>

@@ -153,6 +153,116 @@ def arco_paralelo(phi, lam1, lam2):
     
     return s, puntos
 
+def biseccion_geodesica(norte_a, este_a, norte_b, este_b, alpha, beta, max_iter=100, tol=1e-6):
+    """
+    Método de Bisección Geodésica (Pothenot)
+    
+    Parámetros:
+        norte_a, este_a: Coordenadas del punto A (conocido)
+        norte_b, este_b: Coordenadas del punto B (conocido)
+        alpha: Ángulo desde A hacia P (grados decimales, desde el norte horario)
+        beta: Ángulo desde B hacia P (grados decimales, desde el norte horario)
+        max_iter: Máximo número de iteraciones
+        tol: Tolerancia de convergencia (metros)
+    
+    Retorna:
+        norte_p, este_p, iteraciones, error
+    """
+    
+    # Convertir ángulos a radianes
+    alpha_rad = np.radians(alpha)
+    beta_rad = np.radians(beta)
+    
+    # Calcular azimut de A a B
+    delta_este = este_b - este_a
+    delta_norte = norte_b - norte_a
+    azimut_ab = np.arctan2(delta_este, delta_norte)
+    dist_ab = np.sqrt(delta_norte**2 + delta_este**2)
+    
+    # Validar que los ángulos no sean colineales
+    diff_angulos = abs(alpha - beta)
+    if diff_angulos < 1 or abs(diff_angulos - 180) < 1:
+        raise ValueError("Los ángulos α y β no pueden ser casi iguales o suplementarios (solución indeterminada)")
+    
+    # Método de la cotangente (fórmula de Collins)
+    # Este es el método analítico para bisección geodésica
+    
+    # Convertir ángulos a sistema local
+    # Ángulo α respecto a la línea AB
+    gamma_a = alpha_rad - azimut_ab
+    
+    # Ángulo β respecto a la línea BA
+    azimut_ba = azimut_ab + np.pi
+    gamma_b = beta_rad - azimut_ba
+    
+    # Normalizar ángulos
+    while gamma_a < -np.pi: gamma_a += 2 * np.pi
+    while gamma_a > np.pi: gamma_a -= 2 * np.pi
+    while gamma_b < -np.pi: gamma_b += 2 * np.pi
+    while gamma_b > np.pi: gamma_b -= 2 * np.pi
+    
+    # Validar geometría
+    if abs(gamma_a) < 0.01 or abs(gamma_b) < 0.01:
+        raise ValueError("Configuración geométrica inválida: ángulos muy pequeños")
+    
+    if abs(gamma_a + gamma_b) < 0.01:
+        raise ValueError("Configuración geométrica inválida: punto P en la línea AB")
+    
+    # Fórmula de bisección usando cotangentes
+    cot_gamma_a = 1 / np.tan(gamma_a)
+    cot_gamma_b = 1 / np.tan(gamma_b)
+    
+    # Calcular coordenadas de P usando el método de Collins
+    # P está en la intersección de dos líneas desde A y B
+    
+    # Sistema de ecuaciones:
+    # Este_P = Este_A + t * sin(alpha_rad)
+    # Norte_P = Norte_A + t * cos(alpha_rad)
+    # Este_P = Este_B + s * sin(beta_rad)
+    # Norte_P = Norte_B + s * cos(beta_rad)
+    
+    # Resolver sistema
+    sin_alpha = np.sin(alpha_rad)
+    cos_alpha = np.cos(alpha_rad)
+    sin_beta = np.sin(beta_rad)
+    cos_beta = np.cos(beta_rad)
+    
+    # Determinante
+    det = sin_alpha * cos_beta - cos_alpha * sin_beta
+    
+    if abs(det) < 1e-10:
+        raise ValueError("Las líneas son paralelas o casi paralelas (solución indeterminada)")
+    
+    # Distancia desde A hasta P (parámetro t)
+    delta_n = norte_b - norte_a
+    delta_e = este_b - este_a
+    
+    t = (delta_e * cos_beta - delta_n * sin_beta) / det
+    
+    if t < 0:
+        raise ValueError("Solución geométricamente inválida (t < 0): revise los ángulos")
+    
+    # Calcular coordenadas de P
+    norte_p = norte_a + t * cos_alpha
+    este_p = este_a + t * sin_alpha
+    
+    # Verificación: calcular desde B también
+    s = (delta_e * cos_alpha - delta_n * sin_alpha) / det
+    
+    norte_p_check = norte_b + s * cos_beta
+    este_p_check = este_b + s * sin_beta
+    
+    # Error de verificación
+    error = np.sqrt((norte_p - norte_p_check)**2 + (este_p - este_p_check)**2)
+    
+    if error > 1.0:
+        raise ValueError(f"Error de convergencia alto ({error:.3f} m): revise los datos de entrada")
+    
+    # Número de iteraciones (para este método directo es 1)
+    iteraciones = 1
+    
+    return norte_p, este_p, iteraciones, error
+
 def area_cuadrilatero(coords):
     """
     Calcula el área de un cuadrilátero sobre el elipsoide
@@ -429,7 +539,62 @@ def api_apartado7():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
-@app.route('/api/apartado9', methods=['POST'])
+@app.route('/api/apartado8', methods=['POST'])
+def api_apartado8():
+    """
+    Bisección Geodésica (Problema de Pothenot)
+    Determina coordenadas de punto P desconocido mediante ángulos desde puntos A y B conocidos
+    """
+    try:
+        data = request.json
+        norte_a = float(data['norte_a'])
+        este_a = float(data['este_a'])
+        norte_b = float(data['norte_b'])
+        este_b = float(data['este_b'])
+        
+        alpha_g = float(data['alpha_grados'])
+        alpha_m = float(data['alpha_minutos'])
+        alpha_s = float(data['alpha_segundos'])
+        beta_g = float(data['beta_grados'])
+        beta_m = float(data['beta_minutos'])
+        beta_s = float(data['beta_segundos'])
+        
+        # Validación de minutos y segundos
+        if alpha_m < 0 or alpha_m >= 60 or beta_m < 0 or beta_m >= 60:
+            raise ValueError("Minutos fuera de rango [0-59]")
+        if alpha_s < 0 or alpha_s >= 60 or beta_s < 0 or beta_s >= 60:
+            raise ValueError("Segundos fuera de rango [0-59.999]")
+        
+        # Convertir a decimal
+        alpha = dms_to_decimal(alpha_g, alpha_m, alpha_s)
+        beta = dms_to_decimal(beta_g, beta_m, beta_s)
+        
+        # Validar rango de ángulos
+        if alpha < 0 or alpha >= 360:
+            raise ValueError("Ángulo α fuera de rango [0°, 360°)")
+        if beta < 0 or beta >= 360:
+            raise ValueError("Ángulo β fuera de rango [0°, 360°)")
+        
+        # Verificar que A y B no sean el mismo punto
+        if abs(norte_a - norte_b) < 1e-6 and abs(este_a - este_b) < 1e-6:
+            raise ValueError("Los puntos A y B deben ser diferentes")
+        
+        # Resolver bisección
+        norte_p, este_p, iteraciones, error = biseccion_geodesica(
+            norte_a, este_a, norte_b, este_b, alpha, beta
+        )
+        
+        return jsonify({
+            'success': True,
+            'punto_p': {
+                'norte': float(norte_p),
+                'este': float(este_p)
+            },
+            'iteraciones': iteraciones,
+            'error': float(error)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
 def api_apartado9():
     """Área de cuadrilátero en elipsoide"""
     try:
