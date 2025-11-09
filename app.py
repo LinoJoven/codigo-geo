@@ -155,9 +155,10 @@ def arco_paralelo(phi, lam1, lam2):
 
 def area_cuadrilatero(coords):
     """
-    Calcula el área de un cuadrilátero en el elipsoide
+    Calcula el área de un cuadrilátero sobre el elipsoide
     coords: lista de 4 tuplas [(φ1,λ1), (φ2,λ2), (φ3,λ3), (φ4,λ4)]
-    Método: Proyección estereográfica + fórmula del cordón de zapato
+    Método: Proyección estereográfica local + Shoelace formula
+    Los puntos se calculan SOBRE LA SUPERFICIE (h=0)
     """
     # Convertir a radianes
     coords_rad = [(np.radians(phi), np.radians(lam)) for phi, lam in coords]
@@ -188,11 +189,11 @@ def area_cuadrilatero(coords):
         area -= puntos_2d[j][0] * puntos_2d[i][1]
     area = abs(area) / 2.0
     
-    # Generar puntos 3D para visualización
+    # Generar puntos 3D SOBRE LA SUPERFICIE (h=0)
     puntos_3d = []
     for phi, lam in coords_rad:
-        X, Y, Z = phi_lambda_to_xyz(np.degrees(phi), np.degrees(lam), 0)
-        puntos_3d.append([X, Y, Z])
+        X, Y, Z = phi_lambda_to_xyz(np.degrees(phi), np.degrees(lam), h=0)
+        puntos_3d.append([float(X), float(Y), float(Z)])
     
     return area, puntos_3d
 
@@ -213,14 +214,20 @@ def apartado(numero):
 
 @app.route('/api/apartado1', methods=['POST'])
 def api_apartado1():
-    """Transformación de latitudes (φ, θ, ω)"""
+    """Transformación de latitudes (φ, θ, ω) con longitud para posición 3D completa"""
     try:
         data = request.json
         tipo = data['tipo_entrada']
-        g, m, s = float(data['grados']), float(data['minutos']), float(data['segundos'])
-        validar_latitud(g, m, s)
+        lat_g, lat_m, lat_s = float(data['lat_grados']), float(data['lat_minutos']), float(data['lat_segundos'])
+        lon_g, lon_m, lon_s = float(data['lon_grados']), float(data['lon_minutos']), float(data['lon_segundos'])
         
-        val = np.radians(dms_to_decimal(g, m, s))
+        validar_latitud(lat_g, lat_m, lat_s)
+        validar_longitud(lon_g, lon_m, lon_s)
+        
+        lat_decimal = dms_to_decimal(lat_g, lat_m, lat_s)
+        lon_decimal = dms_to_decimal(lon_g, lon_m, lon_s)
+        
+        val = np.radians(lat_decimal)
         
         if tipo == 'phi':
             phi_r, theta_r, omega_r = val, phi_to_theta(val), phi_to_omega(val)
@@ -234,7 +241,7 @@ def api_apartado1():
             theta_r = phi_to_theta(phi_r)
         
         phi_deg, theta_deg, omega_deg = np.degrees(phi_r), np.degrees(theta_r), np.degrees(omega_r)
-        X, Y, Z = phi_lambda_to_xyz(phi_deg, 0)
+        X, Y, Z = phi_lambda_to_xyz(phi_deg, lon_decimal, h=0)
         
         return jsonify({
             'success': True,
@@ -242,7 +249,8 @@ def api_apartado1():
                 'phi': {'decimal': phi_deg, 'dms': decimal_to_dms(phi_deg)},
                 'theta': {'decimal': theta_deg, 'dms': decimal_to_dms(theta_deg)},
                 'omega': {'decimal': omega_deg, 'dms': decimal_to_dms(omega_deg)},
-                'coords': {'X': X, 'Y': Y, 'Z': Z}
+                'coords': {'X': X, 'Y': Y, 'Z': Z},
+                'longitud': {'decimal': lon_decimal, 'dms': decimal_to_dms(lon_decimal)}
             }
         })
     except Exception as e:
