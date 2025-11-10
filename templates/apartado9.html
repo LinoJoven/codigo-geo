@@ -28,8 +28,7 @@
         .form-group { margin-bottom: 20px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #333; }
         input { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; }
-        .coords-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        .angle-input { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .coords-input { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         button {
             width: 100%; padding: 15px;
             background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
@@ -43,13 +42,16 @@
         }
         #canvas-container { width: 100%; height: 700px; border-radius: 10px; overflow: hidden; }
         .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; }
-        .info-box { background: #d1ecf1; border: 2px solid #17a2b8; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .controls-info { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         small { display: block; margin-top: 5px; color: #666; font-size: 0.85em; }
+        .info-box { background: #d1ecf1; border: 2px solid #17a2b8; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
         .punto-section {
             background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;
             border-left: 4px solid #e74c3c;
         }
-        .punto-section h3 { color: #e74c3c; margin-bottom: 15px; }
+        .punto-section h3 {
+            color: #e74c3c; margin-bottom: 15px;
+        }
         .area-display {
             font-size: 2em; font-weight: bold; text-align: center;
             padding: 20px; background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
@@ -63,7 +65,7 @@
     
     <div class="header">
         <h1>📐 Área del Cuadrilátero en Elipsoide</h1>
-        <p>Cálculo de área geodésica sobre la superficie del elipsoide</p>
+        <p>Cálculo de área geodésica entre 4 puntos</p>
     </div>
 
     <div class="container">
@@ -72,28 +74,44 @@
             
             <div class="info-box">
                 <h4>ℹ️ Método de Cálculo</h4>
-                <p>Utiliza proyección estereográfica local y la <strong>fórmula del cordón de zapato</strong> para calcular el área sobre la superficie del elipsoide WGS84.</p>
+                <p>Utiliza proyección estereográfica local y la <strong>fórmula del cordón de zapato</strong> (Shoelace formula) para calcular el área sobre la superficie del elipsoide WGS84.</p>
                 <p><strong>⚠️ Los puntos deben ingresarse en orden:</strong> P1→P2→P3→P4 (sentido horario o antihorario)</p>
             </div>
 
             <!-- PUNTO 1 -->
             <div class="punto-section">
                 <h3>🔴 Punto 1 (Vértice A)</h3>
-                <div class="coords-grid">
-                    <div>
-                        <label>Latitud (φ₁):</label>
-                        <div class="angle-input">
-                            <input type="number" id="phi1_g" placeholder="Grados" min="-90" max="90">
-                            <input type="number" id="phi1_m" placeholder="Min" min="0" max="59" value="0">
-                            <input type="number" id="phi1_s" placeholder="Seg" min="0" max="59.999" step="0.001" value="0">
+                <div class="form-group">
+                    <label>Latitud (φ₁):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="phi1_grados" placeholder="Grados" min="-90" max="90">
+                            <small>Grados</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi1_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi1_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos</small>
                         </div>
                     </div>
-                    <div>
-                        <label>Longitud (λ₁):</label>
-                        <div class="angle-input">
-                            <input type="number" id="lambda1_g" placeholder="Grados" min="-180" max="180">
-                            <input type="number" id="lambda1_m" placeholder="Min" min="0" max="59" value="0">
-                            <input type="number" id="lambda1_s" placeholder="Seg" min="0" max="59.999" step="0.001" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Longitud (λ₁):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="lambda1_grados" placeholder="Grados" min="-180" max="180">
+                            <small>Grados</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda1_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda1_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos</small>
                         </div>
                     </div>
                 </div>
@@ -102,21 +120,37 @@
             <!-- PUNTO 2 -->
             <div class="punto-section">
                 <h3>🟢 Punto 2 (Vértice B)</h3>
-                <div class="coords-grid">
-                    <div>
-                        <label>Latitud (φ₂):</label>
-                        <div class="angle-input">
-                            <input type="number" id="phi2_g" placeholder="Grados" min="-90" max="90">
-                            <input type="number" id="phi2_m" placeholder="Min" min="0" max="59" value="0">
-                            <input type="number" id="phi2_s" placeholder="Seg" min="0" max="59.999" step="0.001" value="0">
+                <div class="form-group">
+                    <label>Latitud (φ₂):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="phi2_grados" placeholder="Grados" min="-90" max="90">
+                            <small>Grados</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi2_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi2_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos</small>
                         </div>
                     </div>
-                    <div>
-                        <label>Longitud (λ₂):</label>
-                        <div class="angle-input">
-                            <input type="number" id="lambda2_g" placeholder="Grados" min="-180" max="180">
-                            <input type="number" id="lambda2_m" placeholder="Min" min="0" max="59" value="0">
-                            <input type="number" id="lambda2_s" placeholder="Seg" min="0" max="59.999" step="0.001" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Longitud (λ₂):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="lambda2_grados" placeholder="Grados" min="-180" max="180">
+                            <small>Grados</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda2_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda2_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos</small>
                         </div>
                     </div>
                 </div>
@@ -125,21 +159,37 @@
             <!-- PUNTO 3 -->
             <div class="punto-section">
                 <h3>🔵 Punto 3 (Vértice C)</h3>
-                <div class="coords-grid">
-                    <div>
-                        <label>Latitud (φ₃):</label>
-                        <div class="angle-input">
-                            <input type="number" id="phi3_g" placeholder="Grados" min="-90" max="90">
-                            <input type="number" id="phi3_m" placeholder="Min" min="0" max="59" value="0">
-                            <input type="number" id="phi3_s" placeholder="Seg" min="0" max="59.999" step="0.001" value="0">
+                <div class="form-group">
+                    <label>Latitud (φ₃):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="phi3_grados" placeholder="Grados" min="-90" max="90">
+                            <small>Grados</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi3_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi3_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos</small>
                         </div>
                     </div>
-                    <div>
-                        <label>Longitud (λ₃):</label>
-                        <div class="angle-input">
-                            <input type="number" id="lambda3_g" placeholder="Grados" min="-180" max="180">
-                            <input type="number" id="lambda3_m" placeholder="Min" min="0" max="59" value="0">
-                            <input type="number" id="lambda3_s" placeholder="Seg" min="0" max="59.999" step="0.001" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Longitud (λ₃):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="lambda3_grados" placeholder="Grados" min="-180" max="180">
+                            <small>Grados</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda3_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda3_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos</small>
                         </div>
                     </div>
                 </div>
@@ -148,21 +198,37 @@
             <!-- PUNTO 4 -->
             <div class="punto-section">
                 <h3>🟡 Punto 4 (Vértice D)</h3>
-                <div class="coords-grid">
-                    <div>
-                        <label>Latitud (φ₄):</label>
-                        <div class="angle-input">
-                            <input type="number" id="phi4_g" placeholder="Grados" min="-90" max="90">
-                            <input type="number" id="phi4_m" placeholder="Min" min="0" max="59" value="0">
-                            <input type="number" id="phi4_s" placeholder="Seg" min="0" max="59.999" step="0.001" value="0">
+                <div class="form-group">
+                    <label>Latitud (φ₄):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="phi4_grados" placeholder="Grados" min="-90" max="90">
+                            <small>Grados</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi4_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos</small>
+                        </div>
+                        <div>
+                            <input type="number" id="phi4_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos</small>
                         </div>
                     </div>
-                    <div>
-                        <label>Longitud (λ₄):</label>
-                        <div class="angle-input">
-                            <input type="number" id="lambda4_g" placeholder="Grados" min="-180" max="180">
-                            <input type="number" id="lambda4_m" placeholder="Min" min="0" max="59" value="0">
-                            <input type="number" id="lambda4_s" placeholder="Seg" min="0" max="59.999" step="0.001" value="0">
+                </div>
+                <div class="form-group">
+                    <label>Longitud (λ₄):</label>
+                    <div class="coords-input">
+                        <div>
+                            <input type="number" id="lambda4_grados" placeholder="Grados" min="-180" max="180">
+                            <small>Grados</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda4_minutos" placeholder="0" min="0" max="59" value="0">
+                            <small>Minutos</small>
+                        </div>
+                        <div>
+                            <input type="number" id="lambda4_segundos" placeholder="0" min="0" max="59.999" step="0.001" value="0">
+                            <small>Segundos</small>
                         </div>
                     </div>
                 </div>
@@ -174,7 +240,7 @@
 
         <div class="panel">
             <h2>Visualización 3D del Cuadrilátero</h2>
-            <div class="info-box" style="background: #fff3cd; border-color: #ffc107;">
+            <div class="controls-info">
                 <h4>🎮 Controles</h4>
                 <p><strong>Izquierdo:</strong> Rotar | <strong>Rueda:</strong> Zoom | <strong>Derecho:</strong> Mover</p>
             </div>
@@ -182,14 +248,13 @@
             <div style="margin-top: 15px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
                 <p><strong>🔴 Rojo:</strong> Punto 1 | <strong>🟢 Verde:</strong> Punto 2</p>
                 <p><strong>🔵 Azul:</strong> Punto 3 | <strong>🟡 Amarillo:</strong> Punto 4</p>
-                <p><strong>⬜ Superficie blanca:</strong> Área del cuadrilátero sobre el elipsoide</p>
+                <p><strong>⬜ Líneas Blancas:</strong> Perímetro del cuadrilátero</p>
             </div>
         </div>
     </div>
 
     <script>
         let scene, camera, renderer, controls;
-        const WGS84 = { a: 6378137, b: 6356752.314245, e2: 0.00669438002290 };
         
         function init3D() {
             scene = new THREE.Scene();
@@ -213,16 +278,14 @@
             light.position.set(10000000, 10000000, 10000000);
             scene.add(light);
             
-            // Elipsoide
-            const geo = new THREE.SphereGeometry(WGS84.a, 64, 64);
-            geo.scale(1, 1, WGS84.b / WGS84.a);
+            const geo = new THREE.SphereGeometry(6378137, 64, 64);
+            geo.scale(1, 1, 6356752/6378137);
             scene.add(new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ 
                 color: 0xf39c12, transparent: true, opacity: 0.5 
             })));
             
-            // Wireframe
-            const wireGeo = new THREE.SphereGeometry(WGS84.a * 1.005, 24, 24);
-            wireGeo.scale(1, 1, WGS84.b / WGS84.a);
+            const wireGeo = new THREE.SphereGeometry(6378137*1.005, 24, 24);
+            wireGeo.scale(1, 1, 6356752/6378137);
             scene.add(new THREE.LineSegments(
                 new THREE.EdgesGeometry(wireGeo),
                 new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 })
@@ -243,105 +306,48 @@
             renderer.render(scene, camera);
         }
         
-        function calcCoords(phi, lam) {
-            const phiR = phi * Math.PI / 180;
-            const lamR = lam * Math.PI / 180;
-            const N = WGS84.a / Math.sqrt(1 - WGS84.e2 * Math.sin(phiR)**2);
-            return {
-                x: N * Math.cos(phiR) * Math.cos(lamR),
-                y: N * Math.cos(phiR) * Math.sin(lamR),
-                z: N * (1 - WGS84.e2) * Math.sin(phiR)
-            };
-        }
-        
-        function drawQuadrilateral(coords) {
-            // Limpiar objetos previos
+        function drawQuadrilateral(puntos) {
             scene.children = scene.children.filter(c => 
                 !(c.type === 'Mesh' && c.geometry.type === 'SphereGeometry' && c.geometry.parameters.radius < 500000) &&
-                c.type !== 'Line' && c.type !== 'Mesh' || c.geometry.type !== 'BufferGeometry'
+                c.type !== 'Line'
             );
             
             const colores = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00];
-            const points3D = coords.map(c => calcCoords(c[0], c[1]));
             
             // Dibujar puntos
-            points3D.forEach((p, i) => {
+            puntos.forEach((p, i) => {
                 const punto = new THREE.Mesh(
                     new THREE.SphereGeometry(350000, 32, 32),
                     new THREE.MeshBasicMaterial({ color: colores[i] })
                 );
-                punto.position.set(p.x, p.z, p.y);
+                punto.position.set(p[0], p[2], p[1]);
                 scene.add(punto);
             });
             
-            // Dibujar líneas del perímetro SOBRE LA SUPERFICIE
+            // Dibujar líneas del cuadrilátero
             for (let i = 0; i < 4; i++) {
-                const p1 = coords[i];
-                const p2 = coords[(i + 1) % 4];
-                
-                // Crear línea geodésica interpolada
-                const steps = 50;
-                const linePoints = [];
-                
-                for (let t = 0; t <= steps; t++) {
-                    const ratio = t / steps;
-                    // Interpolación esférica
-                    const phi = p1[0] + (p2[0] - p1[0]) * ratio;
-                    const lam = p1[1] + (p2[1] - p1[1]) * ratio;
-                    const c = calcCoords(phi, lam);
-                    linePoints.push(new THREE.Vector3(c.x, c.z, c.y));
-                }
+                const p1 = puntos[i];
+                const p2 = puntos[(i + 1) % 4];
                 
                 const line = new THREE.Line(
-                    new THREE.BufferGeometry().setFromPoints(linePoints),
+                    new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(p1[0], p1[2], p1[1]),
+                        new THREE.Vector3(p2[0], p2[2], p2[1])
+                    ]),
                     new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 3 })
                 );
                 scene.add(line);
             }
             
-            // Dibujar superficie del cuadrilátero SOBRE EL ELIPSOIDE
-            const surfaceVertices = [];
-            const surfaceFaces = [];
+            // Dibujar superficie (opcional, con transparencia)
+            const vertices = [];
+            puntos.forEach(p => vertices.push(p[0], p[2], p[1]));
             
-            // Subdividir el cuadrilátero en una malla
-            const gridRes = 20;
-            
-            for (let i = 0; i <= gridRes; i++) {
-                for (let j = 0; j <= gridRes; j++) {
-                    const u = i / gridRes;
-                    const v = j / gridRes;
-                    
-                    // Interpolación bilineal de coordenadas
-                    const phi = (1-u)*(1-v)*coords[0][0] + u*(1-v)*coords[1][0] + 
-                                (1-u)*v*coords[3][0] + u*v*coords[2][0];
-                    const lam = (1-u)*(1-v)*coords[0][1] + u*(1-v)*coords[1][1] + 
-                                (1-u)*v*coords[3][1] + u*v*coords[2][1];
-                    
-                    const c = calcCoords(phi, lam);
-                    surfaceVertices.push(c.x, c.z, c.y);
-                }
-            }
-            
-            // Crear caras triangulares
-            for (let i = 0; i < gridRes; i++) {
-                for (let j = 0; j < gridRes; j++) {
-                    const idx = i * (gridRes + 1) + j;
-                    
-                    // Triángulo 1
-                    surfaceFaces.push(
-                        idx, idx + 1, idx + gridRes + 1
-                    );
-                    
-                    // Triángulo 2
-                    surfaceFaces.push(
-                        idx + 1, idx + gridRes + 2, idx + gridRes + 1
-                    );
-                }
-            }
+            const indices = [0, 1, 2, 0, 2, 3];
             
             const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(surfaceVertices, 3));
-            geometry.setIndex(surfaceFaces);
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setIndex(indices);
             geometry.computeVertexNormals();
             
             const mesh = new THREE.Mesh(
@@ -349,7 +355,7 @@
                 new THREE.MeshBasicMaterial({ 
                     color: 0xffffff, 
                     transparent: true, 
-                    opacity: 0.3,
+                    opacity: 0.2,
                     side: THREE.DoubleSide
                 })
             );
@@ -358,22 +364,22 @@
         
         async function calcular() {
             const data = {};
-            const coords = [];
             
-            // Recopilar datos
+            // Recopilar datos de los 4 puntos
             for (let i = 1; i <= 4; i++) {
-                const phi_g = parseFloat(document.getElementById(`phi${i}_g`).value);
-                const phi_m = parseFloat(document.getElementById(`phi${i}_m`).value) || 0;
-                const phi_s = parseFloat(document.getElementById(`phi${i}_s`).value) || 0;
-                const lam_g = parseFloat(document.getElementById(`lambda${i}_g`).value);
-                const lam_m = parseFloat(document.getElementById(`lambda${i}_m`).value) || 0;
-                const lam_s = parseFloat(document.getElementById(`lambda${i}_s`).value) || 0;
+                const phi_g = parseFloat(document.getElementById(`phi${i}_grados`).value);
+                const phi_m = parseFloat(document.getElementById(`phi${i}_minutos`).value) || 0;
+                const phi_s = parseFloat(document.getElementById(`phi${i}_segundos`).value) || 0;
+                const lam_g = parseFloat(document.getElementById(`lambda${i}_grados`).value);
+                const lam_m = parseFloat(document.getElementById(`lambda${i}_minutos`).value) || 0;
+                const lam_s = parseFloat(document.getElementById(`lambda${i}_segundos`).value) || 0;
                 
                 if (isNaN(phi_g) || isNaN(lam_g)) {
                     alert(`Complete las coordenadas del Punto ${i}`);
                     return;
                 }
                 
+                // Validaciones
                 if (phi_m < 0 || phi_m >= 60 || lam_m < 0 || lam_m >= 60) {
                     alert(`Punto ${i}: Minutos deben estar entre 0-59`);
                     return;
@@ -395,7 +401,6 @@
                     return;
                 }
                 
-                coords.push([phi_dec, lam_dec]);
                 data[`phi${i}_grados`] = phi_g;
                 data[`phi${i}_minutos`] = phi_m;
                 data[`phi${i}_segundos`] = phi_s;
@@ -417,6 +422,21 @@
                     const areaKm2 = result.area_km2;
                     const areaHa = result.area_ha;
                     
+                    // Calcular perímetro aproximado
+                    const puntos = result.coordenadas;
+                    let perimetro = 0;
+                    for (let i = 0; i < 4; i++) {
+                        const p1 = puntos[i];
+                        const p2 = puntos[(i + 1) % 4];
+                        const dLat = (p2[0] - p1[0]) * Math.PI / 180;
+                        const dLon = (p2[1] - p1[1]) * Math.PI / 180;
+                        const a = Math.sin(dLat/2)**2 + 
+                                  Math.cos(p1[0] * Math.PI/180) * Math.cos(p2[0] * Math.PI/180) * 
+                                  Math.sin(dLon/2)**2;
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        perimetro += 6378137 * c;
+                    }
+                    
                     document.getElementById('resultados').innerHTML = `
                         <div class="resultados">
                             <h3>✅ Área del Cuadrilátero</h3>
@@ -433,15 +453,22 @@
                             </div>
                             
                             <div class="resultado-item">
+                                <h4>📐 Información Adicional</h4>
+                                <p><strong>Perímetro aproximado:</strong> ${perimetro.toLocaleString('es-ES', {maximumFractionDigits: 2})} m</p>
+                                <p><strong>Método:</strong> Proyección estereográfica + Shoelace formula</p>
+                                <p><strong>Elipsoide:</strong> WGS84</p>
+                            </div>
+                            
+                            <div class="resultado-item">
                                 <h4>📍 Coordenadas de los Vértices</h4>
-                                ${coords.map((p, i) => `
+                                ${puntos.map((p, i) => `
                                     <p><strong>P${i+1}:</strong> (${p[0].toFixed(6)}°, ${p[1].toFixed(6)}°)</p>
                                 `).join('')}
                             </div>
                         </div>
                     `;
                     
-                    drawQuadrilateral(coords);
+                    drawQuadrilateral(result.puntos);
                 } else {
                     document.getElementById('resultados').innerHTML = `<div class="error">❌ ${result.error}</div>`;
                 }

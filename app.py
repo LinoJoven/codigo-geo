@@ -595,6 +595,7 @@ def api_apartado8():
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
+@app.route('/api/apartado9', methods=['POST'])
 def api_apartado9():
     """Área de cuadrilátero en elipsoide"""
     try:
